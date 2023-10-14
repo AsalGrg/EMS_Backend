@@ -1,11 +1,13 @@
 package com.backend.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 
 @Getter
@@ -37,7 +39,8 @@ public class User {
     @JoinTable(name = "user_roles" , joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role>  userRoles;
 
-    @ManyToMany(mappedBy = "users")
-    private List<Event> events;
+    @ManyToMany(mappedBy = "event_group")
+    @JsonIgnore
+    private Set<Event> events;
 
 }

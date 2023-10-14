@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -45,9 +46,12 @@ public class Event {
     @Column(name = "seats")
     private int seats;
 
+    @Column(name = "access_token")
+    private String accessToken;
+
     @ManyToOne
     @JoinColumn(name = "event_hoster_id")
-    private User user;
+    private User event_hoster;
 
     @ManyToOne
     @JoinColumn(name = "event_type_id")
@@ -56,7 +60,7 @@ public class Event {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "event_group" , joinColumns = @JoinColumn(name = "event_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<User> users;
+    private Set<User> event_group;
 
 }
 

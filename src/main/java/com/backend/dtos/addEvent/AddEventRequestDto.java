@@ -1,22 +1,17 @@
-package com.backend.dtos;
+package com.backend.dtos.addEvent;
 
 
-import com.backend.models.User;
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @Getter
 @Setter
-public class AddEventDto {
+public class AddEventRequestDto {
 
 
     @NotNull(message = "Event name must be given")
@@ -27,12 +22,10 @@ public class AddEventDto {
     @NotEmpty(message = "Event name cannot be empty")
     private String location;
 
-
     @NotNull(message = "Event date must be given")
-    private LocalDate eventDate;
+    private LocalDate event_date;
 
-
-    private LocalDate publishedDate;
+    private LocalDate published_date;
 
     @NotNull(message = "Event description must be given")
     @NotEmpty(message = "Event description cannot be empty")

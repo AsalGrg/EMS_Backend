@@ -1,16 +1,17 @@
 package com.backend.controllers;
 
 
-import com.backend.dtos.AddEventDto;
+import com.backend.dtos.addEvent.AddEventRequestDto;
+import com.backend.dtos.addEvent.AddEventResponseDto;
 import com.backend.models.Event;
 import com.backend.serviceImpls.EventServiceImplementation;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -45,9 +46,17 @@ public class EventController {
         return new ResponseEntity<>(this.eventService.getEventByType(type), HttpStatus.OK);
     }
 
+    @PostMapping("/private/{accessToken}")
+    public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken, HttpSession httpSession){
+        String username= (String)httpSession.getAttribute("CurrentUser");
+        AddEventResponseDto eventDetails = this.eventService.getEventByAccessToken(accessToken, username);
+
+        return new ResponseEntity<>(eventDetails, HttpStatus.OK);
+    }
+
     @PostMapping("/addEvent")
-    public ResponseEntity<Event> addEvent(@Valid @RequestBody AddEventDto addEventDto){
-        addEventDto.setPublishedDate(LocalDate.now());
+    public ResponseEntity<?> addEvent(@Valid @RequestBody AddEventRequestDto addEventDto){
+        addEventDto.setPublished_date(LocalDate.now());
         return new ResponseEntity<>(this.eventService.addEvent(addEventDto), HttpStatus.OK);
     }
 }
