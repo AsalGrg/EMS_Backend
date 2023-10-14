@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Integer> {
 
-    public Optional<Event> findEventById(int id);
+    public Event findEventById(int id);
 
     public List<Event> findEventByLocation(String location);
 
@@ -20,4 +20,6 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     public List<Event> findEventByType(@Param("name") String type);
 
     public boolean existsByName(String name);
+
+    public Optional<Event> findByAccessToken(String accessToken);
 }
