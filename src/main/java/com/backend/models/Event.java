@@ -19,7 +19,7 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private Integer id;
 
     @Column(name = "title")
     private String name;
@@ -50,8 +50,8 @@ public class Event {
     private String accessToken;
 
     @ManyToOne
-    @JoinColumn(name = "event_hoster_id")
-    private User event_hoster;
+    @JoinColumn(name = "event_organizer_id")
+    private User event_organizer;
 
     @ManyToOne
     @JoinColumn(name = "event_type_id")

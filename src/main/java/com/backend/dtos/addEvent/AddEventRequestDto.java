@@ -1,6 +1,7 @@
 package com.backend.dtos.addEvent;
 
 
+import com.backend.models.PromoCode;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -27,6 +28,8 @@ public class AddEventRequestDto {
 
     private LocalDate published_date;
 
+    private String event_organizer;
+
     @NotNull(message = "Event description must be given")
     @NotEmpty(message = "Event description cannot be empty")
     private String description;
@@ -45,5 +48,6 @@ public class AddEventRequestDto {
     @NotEmpty(message = "Event name cannot be empty")
     private String eventType;
 
+    private List<PromoCode> promoCodes;
 
 }

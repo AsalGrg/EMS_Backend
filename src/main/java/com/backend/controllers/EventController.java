@@ -1,6 +1,7 @@
 package com.backend.controllers;
 
 
+import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.AddEventResponseDto;
 import com.backend.models.Event;
@@ -55,8 +56,18 @@ public class EventController {
     }
 
     @PostMapping("/addEvent")
-    public ResponseEntity<?> addEvent(@Valid @RequestBody AddEventRequestDto addEventDto){
+    public ResponseEntity<?> addEvent(@Valid @RequestBody AddEventRequestDto addEventDto, HttpSession httpSession){
         addEventDto.setPublished_date(LocalDate.now());
+        addEventDto.setEvent_organizer((String) httpSession.getAttribute("CurrentUser"));
+
         return new ResponseEntity<>(this.eventService.addEvent(addEventDto), HttpStatus.OK);
+    }
+
+    @PostMapping("/addPromoCode")
+    public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto, HttpSession httpSession){
+        promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
+        this.eventService.addPromocode(promoCodeDto);
+
+        return new ResponseEntity<>("Promocode Added Successfully",HttpStatus.OK);
     }
 }
