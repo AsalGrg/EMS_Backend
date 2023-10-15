@@ -1,14 +1,17 @@
 package com.backend.serviceImpls;
 
+import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.AddEventResponseDto;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.Event;
+import com.backend.models.PromoCode;
 import com.backend.models.User;
 import com.backend.repositories.EventRepository;
 import com.backend.repositories.EventTypeRepository;
+import com.backend.repositories.PromocodeRepository;
 import com.backend.repositories.UserRepository;
 import com.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +30,15 @@ public class EventServiceImplementation implements EventService {
 
     private UserRepository userRepository;
 
+    private PromocodeRepository promocodeRepository;
+
     @Autowired
-    public EventServiceImplementation(EventRepository eventRepository, EventTypeRepository eventTypeRepository, UserRepository userRepository){
+    public EventServiceImplementation(EventRepository eventRepository, EventTypeRepository eventTypeRepository, UserRepository userRepository
+    ,PromocodeRepository promocodeRepository){
         this.eventRepository= eventRepository;
         this.eventTypeRepository= eventTypeRepository;
         this.userRepository= userRepository;
+        this.promocodeRepository= promocodeRepository;
     }
 
     @Override
@@ -79,10 +86,20 @@ public class EventServiceImplementation implements EventService {
         //checking if the event name already exists or not
         boolean eventNameExists= this.eventRepository.existsByName(addEventDto.getName());
 
+        if(addEventDto.getPromoCodes()!=null){
+
+            for(PromoCode promoCode: addEventDto.getPromoCodes()){
+                if(this.promocodeRepository.existsByName(promoCode.getName())){
+                    throw new ResourceAlreadyExistsException(promoCode.getName()+" already exits!");
+                }
+            }
+        }
+
         //if the event name matches
         if(eventNameExists){
             throw new ResourceAlreadyExistsException("Event name already exists");
         }
+
 
         //setting the event details from the dto to the event object
         Event event= new Event();
@@ -94,7 +111,7 @@ public class EventServiceImplementation implements EventService {
         event.setPrivate(addEventDto.isPrivate());
         event.setEntryFee(addEventDto.getEntryFee());
         event.setSeats(addEventDto.getSeats());
-
+        event.setEvent_organizer(this.userRepository.findByUsername(addEventDto.getEvent_organizer()).orElseThrow(()->new ResourceNotFoundException("Invalid Event Organizer Data")));
         //checking if the event is private
         if(addEventDto.isPrivate()){
 
@@ -104,7 +121,7 @@ public class EventServiceImplementation implements EventService {
 
 
             //checking if the user group is empty or not
-            if(!addEventDto.getEvent_group().isEmpty()){
+            if(addEventDto.getEvent_group()!=null){
 
                 List<String> user_groups= addEventDto.getEvent_group();
 
@@ -135,6 +152,20 @@ public class EventServiceImplementation implements EventService {
         //adding the event in the database
         this.eventRepository.save(event);
 
+        if(addEventDto.getPromoCodes()!=null) {
+
+            for(PromoCode promoCode: addEventDto.getPromoCodes()) {
+                PromoCode savePromoCode = new PromoCode();
+                savePromoCode.setName(promoCode.getName());
+                savePromoCode.setDiscount_amount(promoCode.getDiscount_amount());
+                savePromoCode.setEvent(event);
+
+                this.promocodeRepository.save(savePromoCode);
+            }
+
+        }
+
+
         AddEventResponseDto addEventResponseDto = new AddEventResponseDto(event.getAccessToken(), event.getName(), event.getLocation(),event.getPublished_date(), event.getEvent_date(), event.getEntryFee());
 
         return addEventResponseDto;
@@ -143,7 +174,7 @@ public class EventServiceImplementation implements EventService {
     @Override
     public AddEventResponseDto getEventByAccessToken(String accessToken, String username) {
         if(username==null){
-            throw new NotAuthorizedException("Please login first");
+            throw new NotAuthorizedException();
         }
 
         Event event= this.eventRepository.findByAccessToken(accessToken)
@@ -161,7 +192,35 @@ public class EventServiceImplementation implements EventService {
             }
         }
 
-        throw new NotAuthorizedException("You are not allowded to access the event");
+        throw new NotAuthorizedException("You are not allowed to access the event");
+    }
+
+
+    @Override
+    public PromoCode addPromocode(AddPromoCodeDto promoCodeDto) {
+
+        Event event = this.eventRepository.findEventByName(promoCodeDto.getEvent_name())
+                .orElseThrow(() ->
+                    new ResourceNotFoundException("Event with title " + promoCodeDto.getEvent_name()+ " does not exist")
+                );
+
+        if(!event.getEvent_organizer().getUsername().equals(promoCodeDto.getUsername())){
+            throw new NotAuthorizedException("You do not have privileges to add promo codes to the event");
+        }
+
+        PromoCode promoCode = new PromoCode();
+        promoCode.setName(promoCodeDto.getName());
+        promoCode.setDiscount_amount(promoCodeDto.getDiscount_amount());
+        promoCode.setEvent(event);
+
+        PromoCode savedPromocode = this.promocodeRepository.save(promoCode);
+
+        if(savedPromocode.getId()==null){
+
+            //should throw exception ...to be continued
+            return null;
+        }
+        return savedPromocode;
     }
 
 }
