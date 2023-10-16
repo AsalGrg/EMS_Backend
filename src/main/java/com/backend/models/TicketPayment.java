@@ -16,8 +16,14 @@ public class TicketPayment {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "total_amount")
-    private  double total_amount;
+    @Column(name = "net_total")
+    private  double net_total;
+
+    @Column(name = "grand_total")
+    private double grand_total;
+
+    @Column(name = "quantity")
+    private int quantity;
 
     @Column(name = "promocodeUsed")
     private boolean promocodeUsed;
