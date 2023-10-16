@@ -17,5 +17,7 @@ public class AddPromoCodeDto {
     @NotNull(message = "Please provide event name")
     private String event_name;
 
+    private Integer quantity;//by default will be set to 1
+
     private String username;
 }
