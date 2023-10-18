@@ -1,8 +1,8 @@
 package com.backend.exceptions;
 
-public class PaymentException extends Exception{
+public class PaymentException extends RuntimeException{
 
-    public PaymentException(Throwable cause){
-        super("Error processing payment", cause);
+    public PaymentException(String cause){
+        super(cause);
     }
 }
