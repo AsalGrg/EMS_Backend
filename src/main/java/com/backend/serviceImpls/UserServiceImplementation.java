@@ -31,6 +31,35 @@ public class UserServiceImplementation implements UserService {
 
     //here contains the overridden method from the UserDetailsService
 
+    public User registerAdmin(RegisterUserDto registerUserDto){
+
+        User user= new User();
+        user.setEmail(registerUserDto.getEmail());
+        user.setUsername(registerUserDto.getUsername());
+        user.setAddress(registerUserDto.getAddress());
+        user.setEvents(null);
+
+        roleRepository.findByTitle("ADMIN").ifPresentOrElse(role -> user.setUserRoles(List.of(role)) , ()->{
+            Role role = new Role();
+            role.setTitle("ADMIN");
+            role.setDescription("System Admin");
+
+            Role savedRole= roleRepository.save(role);
+            user.setUserRoles(List.of(savedRole));
+        });
+        //encoding the password here and then storing it, to be continued..
+        user.setPassword(registerUserDto.getPassword());
+
+        //no events are there in the user at first
+        user.setEvents(null);
+
+        this.userRepository.save(user);
+
+        return user;
+    }
+
+
+
 
     //overridden method from the UserService interface
     @Override

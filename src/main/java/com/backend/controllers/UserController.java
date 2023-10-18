@@ -53,4 +53,20 @@ public class UserController {
 
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+
+
+
+    //just for testing purposes only, to be removed in the future
+    @PostMapping("/admin-signup")
+    public ResponseEntity<?> signUpAdmin(@Valid @RequestBody RegisterUserDto registerUserDto, HttpSession httpSession){
+
+        User user= this.userService.registerAdmin(registerUserDto);
+
+        if(user!=null){
+            httpSession.setAttribute("CurrentUser", user.getUsername());
+        }
+
+        return new ResponseEntity<>(user, HttpStatus.OK);
+
+    }
 }

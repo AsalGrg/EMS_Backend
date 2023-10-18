@@ -3,6 +3,7 @@ package com.backend.serviceImpls;
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.AddEventResponseDto;
+import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
@@ -218,7 +219,7 @@ public class EventServiceImplementation implements EventService {
         if(savedPromocode.getId()==null){
 
             //should throw exception ...to be continued
-            return null;
+            throw new InternalServerError();
         }
         return savedPromocode;
     }

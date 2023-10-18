@@ -2,6 +2,7 @@ package com.backend.serviceImpls;
 
 import com.backend.dtos.payment.PaymentRequestDto;
 import com.backend.dtos.payment.PaymentResponseDto;
+import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.PaymentException;
 import com.backend.exceptions.ResourceNotFoundException;
@@ -34,9 +35,8 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
         this.userRepository= userRepository;
     }
 
-
     @Override
-    public PaymentResponseDto makePayment(PaymentRequestDto paymentRequestDto) {
+    public PaymentResponseDto makePayment(PaymentRequestDto paymentRequestDto){
 
         //object of the ticketPayment that to be saved in database
         TicketPayment ticketPayment= new TicketPayment();
@@ -85,11 +85,7 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
 
         savedAmount= net_total-grand_total;
 
-        try{
-            if(grand_total != paymentRequestDto.getTotal_amount()) throw new PaymentException(new Throwable("Insufficient payment amount"));
-        } catch (PaymentException e) {
-            throw new RuntimeException(e);
-        }
+        if(grand_total != paymentRequestDto.getTotal_amount()) throw new PaymentException("Insufficient payment amount");
 
         ticketPayment.setQuantity(paymentRequestDto.getQuantity());
         ticketPayment.setNet_total(net_total);
@@ -107,7 +103,15 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
         paymentResponseDto.setAmount_saved(savedAmount);
 
 
-        this.ticketPaymentRepository.save(ticketPayment);
+        TicketPayment ticketPaymentSaved= this.ticketPaymentRepository.save(ticketPayment);
+
+        if(ticketPaymentSaved.getId()==null){
+            throw new InternalServerError();
+        }
+
+        eventDetails.setSeats(eventDetails.getSeats()-paymentRequestDto.getQuantity());
+        this.eventRepository.save(eventDetails);
+
 
         return paymentResponseDto;
     }
