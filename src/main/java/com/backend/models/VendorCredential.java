@@ -27,9 +27,14 @@ public class VendorCredential {
     @Column(name = "isDeclined")
     private boolean isDeclined;
 
+    @Column(name = "isTerminated")
+    private boolean isTerminated;
+
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+
 
     @Column(name = "ratings")
     private double rating;

@@ -3,6 +3,7 @@ package com.backend.serviceImpls;
 import com.backend.dtos.VendorRequestsDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
+import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.Role;
@@ -13,6 +14,7 @@ import com.backend.repositories.VendorCredentialsRepository;
 import com.backend.services.VendorCredentialService;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,11 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
     private VendorCredentialsRepository vendorCredentialsRepo;
     private UserRepository userRepository;
+
+    public VendorCredentialServiceImplementation(VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository){
+        this.vendorCredentialsRepo= vendorCredentialsRepository;
+        this.userRepository= userRepository;
+    }
 
 
     //method for checking the user credentials
@@ -45,10 +52,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     }
 
 
-    public VendorCredentialServiceImplementation(VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository){
-        this.vendorCredentialsRepo= vendorCredentialsRepository;
-        this.userRepository= userRepository;
-    }
+
     @Override
     public VendorRegistrationResponse becomeVendor(VendorRegistrationRequestDto vendorRegistrationReq) {
 
@@ -62,7 +66,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
         if(savedCredentials.getCredential_id()!=null) return new VendorRegistrationResponse("Your request has been collected. We will get back to you soon!");
 
-        return null;
+        throw new InternalServerError();
     }
 
     @Override
@@ -70,25 +74,77 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
         User user= checkUserCredentials(username, "ADMIN");
 
-        List<VendorCredential> vendorRequests= this.vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(false, false).
-                orElseThrow(()-> new ResourceNotFoundException(("No requests at the moment")));
+        List<VendorCredential> vendorRequests= this.vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(false, false).get();
+
+        if(vendorRequests.isEmpty()){
+            throw new ResourceNotFoundException("No requests at the moment");
+        }
 
         List<VendorRequestsDto> vendorRequestsView= new ArrayList<>();
 
         for(VendorCredential vendorCredential: vendorRequests){
-            VendorRequestsDto vendorRequestsDto= new VendorRequestsDto();
-
-            vendorRequestsDto.setUsername(vendorCredential.getUser().getUsername());
-            vendorRequestsDto.setCredential_id(vendorCredential.getCredential_id());
-            vendorRequestsDto.setEmail(vendorCredential.getUser().getEmail());
-            vendorRequestsDto.setAddress(vendorCredential.getUser().getAddress());
-            vendorRequestsDto.setDeclined(vendorCredential.isDeclined());
-            vendorRequestsDto.setVerified(vendorCredential.isVerified());
+            VendorRequestsDto vendorRequestsDto = getVendorRequestsDto(vendorCredential);
 
             vendorRequestsView.add(vendorRequestsDto);
         }
 
-
         return vendorRequestsView;
+    }
+
+    private static VendorRequestsDto getVendorRequestsDto(VendorCredential vendorCredential) {
+        VendorRequestsDto vendorRequestsDto= new VendorRequestsDto();
+        vendorRequestsDto.setUsername(vendorCredential.getUser().getUsername());
+        vendorRequestsDto.setCredential_id(vendorCredential.getCredential_id());
+        vendorRequestsDto.setEmail(vendorCredential.getUser().getEmail());
+        vendorRequestsDto.setAddress(vendorCredential.getUser().getAddress());
+        vendorRequestsDto.setDeclined(vendorCredential.isDeclined());
+        vendorRequestsDto.setVerified(vendorCredential.isVerified());
+        return vendorRequestsDto;
+    }
+
+
+    //to get the vendors that are terminated
+    public List<VendorRequestsDto> getTerminatedVendors(String username){
+
+        checkUserCredentials(username, "ADMIN");
+
+        List<VendorCredential> terminatedVendorCredentials = this.vendorCredentialsRepo.findByIsTerminated(true).get();
+
+        if(terminatedVendorCredentials.isEmpty()) {
+            throw new ResourceNotFoundException("No vendors to shows at the moment");
+        }
+
+
+        List<VendorRequestsDto> terminatedVendorsView= new ArrayList<>();
+
+        for(VendorCredential vendorCredential: terminatedVendorCredentials){
+            VendorRequestsDto vendorRequestsDto = getVendorRequestsDto(vendorCredential);
+
+            terminatedVendorsView.add(vendorRequestsDto);
+        }
+
+        return terminatedVendorsView;
+    }
+
+
+    @Override
+    public void vendorRequestAction(String username, String vendorName,String action) {
+        checkUserCredentials(username,"ADMIN");
+
+        VendorCredential  vendorCredential= this.vendorCredentialsRepo.findByUser(this.userRepository.findByUsername(vendorName).orElseThrow(()->new ResourceNotFoundException("Username does not exist")))
+                .orElseThrow(()->new ResourceNotFoundException("Invalid vendor name"));
+
+        switch (action) {
+            case "verify" -> vendorCredential.setVerified(true);
+            case "decline" -> vendorCredential.setDeclined(true);
+
+            //this conditions for further vendor actions such as terminating them etc.
+            case "terminate" -> vendorCredential.setTerminated(true);
+            case "commence" -> vendorCredential.setTerminated(false);
+
+            default -> throw new InternalServerError("Invalid vendor action");
+        }
+
+        this.vendorCredentialsRepo.save(vendorCredential);
     }
 }
