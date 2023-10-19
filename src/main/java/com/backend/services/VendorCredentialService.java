@@ -12,4 +12,6 @@ public interface VendorCredentialService {
     VendorRegistrationResponse becomeVendor(VendorRegistrationRequestDto vendorRegistrationReq);
 
     List<VendorRequestsDto> getVendorRequests(String username);
+
+    void vendorRequestAction(String username, String vendorName, String action);
 }
