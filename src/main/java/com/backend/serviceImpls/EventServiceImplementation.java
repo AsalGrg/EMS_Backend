@@ -1,19 +1,15 @@
 package com.backend.serviceImpls;
 
 import com.backend.dtos.AddPromoCodeDto;
+import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.AddEventResponseDto;
 import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
-import com.backend.models.Event;
-import com.backend.models.PromoCode;
-import com.backend.models.User;
-import com.backend.repositories.EventRepository;
-import com.backend.repositories.EventTypeRepository;
-import com.backend.repositories.PromocodeRepository;
-import com.backend.repositories.UserRepository;
+import com.backend.models.*;
+import com.backend.repositories.*;
 import com.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,13 +29,24 @@ public class EventServiceImplementation implements EventService {
 
     private PromocodeRepository promocodeRepository;
 
+    private EventAccessRequestRepository eventAccessRequestRepo;
+
+    private VendorCredentialsRepository vendorCredentialsRepo;
+
+    private RoleRepository roleRepository;
+
     @Autowired
-    public EventServiceImplementation(EventRepository eventRepository, EventTypeRepository eventTypeRepository, UserRepository userRepository
-    ,PromocodeRepository promocodeRepository){
+    public EventServiceImplementation
+            (EventRepository eventRepository, EventTypeRepository eventTypeRepository, UserRepository userRepository
+    ,PromocodeRepository promocodeRepository, EventAccessRequestRepository eventAccessRequestRepo, VendorCredentialsRepository vendorCredentialsRepository,
+             RoleRepository roleRepository){
         this.eventRepository= eventRepository;
         this.eventTypeRepository= eventTypeRepository;
         this.userRepository= userRepository;
         this.promocodeRepository= promocodeRepository;
+        this.eventAccessRequestRepo= eventAccessRequestRepo;
+        this.vendorCredentialsRepo= vendorCredentialsRepository;
+        this.roleRepository= roleRepository;
     }
 
     @Override
@@ -54,7 +61,7 @@ public class EventServiceImplementation implements EventService {
 
     @Override
     public List<Event> getEventByPlace(String place) {
-        List<Event> events= this.eventRepository.findEventByLocation(place);
+        List<Event> events= this.eventRepository.findEventByLocationAndIsAcceptedAndIsDeclined(place, true, false);
 
         if (events.isEmpty()){
             throw new ResourceNotFoundException("Events for the given place are currently not available");
@@ -70,7 +77,7 @@ public class EventServiceImplementation implements EventService {
 
     @Override
     public List<Event> getAllEvents() {
-        List<Event> events = this.eventRepository.findAll();
+        List<Event> events = this.eventRepository.findByIsAcceptedAndIsDeclined(true, false);
 
         if(events.isEmpty()){
             throw new ResourceNotFoundException("Currently no available events");
@@ -87,6 +94,21 @@ public class EventServiceImplementation implements EventService {
         //checking if the event name already exists or not
         boolean eventNameExists= this.eventRepository.existsByName(addEventDto.getName());
 
+        //if the event name matches
+        if(eventNameExists){
+            throw new ResourceAlreadyExistsException("Event name already exists");
+        }
+
+        VendorCredential vendorCredential= vendorCredentialsRepo.findByUser(this.userRepository.findByUsername(addEventDto.getEvent_vendor()).
+                orElseThrow(()->new ResourceNotFoundException("Invalid vendor name")))
+                .orElseThrow(()->new ResourceNotFoundException("Invalid vendor name"));
+
+        if(vendorCredential.isDeclined() && !vendorCredential.isVerified() && vendorCredential.isTerminated()){
+            throw new ResourceNotFoundException("Invalid vendor name");
+        }
+
+
+
         if(addEventDto.getPromoCodes()!=null){
 
             for(PromoCode promoCode: addEventDto.getPromoCodes()){
@@ -95,12 +117,6 @@ public class EventServiceImplementation implements EventService {
                 }
             }
         }
-
-        //if the event name matches
-        if(eventNameExists){
-            throw new ResourceAlreadyExistsException("Event name already exists");
-        }
-
 
         //setting the event details from the dto to the event object
         Event event= new Event();
@@ -113,6 +129,11 @@ public class EventServiceImplementation implements EventService {
         event.setEntryFee(addEventDto.getEntryFee());
         event.setSeats(addEventDto.getSeats());
         event.setEvent_organizer(this.userRepository.findByUsername(addEventDto.getEvent_organizer()).orElseThrow(()->new ResourceNotFoundException("Invalid Event Organizer Data")));
+
+        //setting the event isAccepted and isDeclined to false at first, which needs to be either true false after the event vendor response.
+        event.setAccepted(false);
+        event.setDeclined(false);
+
         //checking if the event is private
         if(addEventDto.isPrivate()){
 
@@ -125,6 +146,10 @@ public class EventServiceImplementation implements EventService {
             if(addEventDto.getEvent_group()!=null){
 
                 List<String> user_groups= addEventDto.getEvent_group();
+
+                //event organizer and event_organizer is automatically added
+                user_groups.add(addEventDto.getEvent_organizer());
+                user_groups.add(addEventDto.getEvent_vendor());
 
                 System.out.println(user_groups);
 
@@ -166,10 +191,39 @@ public class EventServiceImplementation implements EventService {
 
         }
 
-
         AddEventResponseDto addEventResponseDto = new AddEventResponseDto(event.getAccessToken(), event.getName(), event.getLocation(),event.getPublished_date(), event.getEvent_date(), event.getEntryFee());
 
         return addEventResponseDto;
+    }
+
+    //method for vendor to accept the addEvent requests from the client i.e. event hoster
+    public void addEventVendorRequestAction(String username, String action, String eventName){
+        User user= this.userRepository.findByUsername(username).get();
+
+        Event eventDetails= this.eventRepository.findEventByName(eventName).orElseThrow(()->
+                new ResourceNotFoundException("Invalid Event name"));
+
+        if(user.getUserRoles().contains(this.roleRepository.findByTitle("VENDOR").get())
+                &&
+                !user.getUsername().equals(eventDetails.getEvent_vendor().getUsername())){
+
+            throw new NotAuthorizedException("Access Denied: You do not have the necessary permissions to perform this action.");
+        }
+
+        switch (action){
+
+            case "accept" -> {
+                eventDetails.setAccepted(true);
+                this.eventRepository.save(eventDetails);
+            }
+
+            case "reject" ->{
+                eventDetails.setDeclined(true);
+                this.eventRepository.save(eventDetails);
+            }
+        }
+
+
     }
 
     @Override
@@ -224,4 +278,55 @@ public class EventServiceImplementation implements EventService {
         return savedPromocode;
     }
 
+
+    //service method to make event access request
+    public void makeEventAccessRequest(String username, String accessToken){
+
+        EventAccessRequest requestExists = this.eventAccessRequestRepo.findByUserAndEvent(
+                this.userRepository.findByUsername(username).get(),
+                this.eventRepository.findByAccessToken(accessToken).get()
+        );
+
+        if(requestExists!=null){
+            throw new ResourceAlreadyExistsException("Request has already been collected");
+        }
+
+        requestExists= new EventAccessRequest();
+        requestExists.setUser(this.userRepository.findByUsername(username).get());
+        requestExists.setEvent(this.eventRepository.findByAccessToken(accessToken).get());
+
+        this.eventAccessRequestRepo.save(requestExists);
+
+    }
+
+    //service method handler for getting the event access requests
+    @Override
+    public List<EventAccessRequestsView> getEventAccessRequests(String username) {
+
+       List<EventAccessRequest> allEventAccessRequests=  this.eventAccessRequestRepo.findAll();
+
+       List<EventAccessRequest> filteredEventAccessRequests = new ArrayList<>();
+       for(EventAccessRequest eventAccessRequest: allEventAccessRequests){
+
+           if(eventAccessRequest.getEvent().getEvent_organizer().getUsername().equals(username)){
+               filteredEventAccessRequests.add(eventAccessRequest);
+           }
+       }
+
+       if(filteredEventAccessRequests.isEmpty()){
+           throw new ResourceNotFoundException("No requests at the moment");
+       }
+
+       List<EventAccessRequestsView> eventAccessRequestsViews= new ArrayList<>();
+       for(EventAccessRequest eventAccessRequest: allEventAccessRequests){
+
+           EventAccessRequestsView eventAccessRequestsView= new EventAccessRequestsView();
+           eventAccessRequestsView.setUsername(eventAccessRequest.getUser().getUsername());
+           eventAccessRequestsView.setEmail(eventAccessRequest.getUser().getEmail());
+           eventAccessRequestsView.setEvent_name(eventAccessRequest.getEvent().getName());
+
+           eventAccessRequestsViews.add(eventAccessRequestsView);
+       }
+       return eventAccessRequestsViews;
+    }
 }

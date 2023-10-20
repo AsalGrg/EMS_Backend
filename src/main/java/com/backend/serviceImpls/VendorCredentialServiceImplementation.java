@@ -9,6 +9,7 @@ import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.Role;
 import com.backend.models.User;
 import com.backend.models.VendorCredential;
+import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
 import com.backend.repositories.VendorCredentialsRepository;
 import com.backend.services.VendorCredentialService;
@@ -26,9 +27,13 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     private VendorCredentialsRepository vendorCredentialsRepo;
     private UserRepository userRepository;
 
-    public VendorCredentialServiceImplementation(VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository){
+    private RoleRepository roleRepository;
+
+    public VendorCredentialServiceImplementation
+            (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository){
         this.vendorCredentialsRepo= vendorCredentialsRepository;
         this.userRepository= userRepository;
+        this.roleRepository= roleRepository;
     }
 
 
@@ -135,7 +140,24 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
                 .orElseThrow(()->new ResourceNotFoundException("Invalid vendor name"));
 
         switch (action) {
-            case "verify" -> vendorCredential.setVerified(true);
+            case "verify" -> {
+                vendorCredential.setVerified(true);
+                List<Role> userRoles= vendorCredential.getUser().getUserRoles();
+
+                this.roleRepository.findByTitle("VENDOR").ifPresentOrElse(role -> userRoles.add(role), ()->{
+                    Role role= new Role();
+                    role.setTitle("VENDOR");
+                    role.setDescription("Event Vendor");
+
+                    this.roleRepository.save(role);
+
+                    User vendorCredentials = userRepository.findByUsername(vendorName).get();
+                    vendorCredentials.setUserRoles(userRoles);
+
+                    this.userRepository.save(vendorCredentials);
+                });
+            }
+
             case "decline" -> vendorCredential.setDeclined(true);
 
             //this conditions for further vendor actions such as terminating them etc.

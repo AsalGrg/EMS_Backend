@@ -49,9 +49,19 @@ public class Event {
     @Column(name = "access_token")
     private String accessToken;
 
+    @Column(name = "isAccepted")
+    private boolean isAccepted;
+
+    @Column(name = "isDeclined")
+    private boolean isDeclined;
+
     @ManyToOne
     @JoinColumn(name = "event_organizer_id")
     private User event_organizer;
+
+    @ManyToOne
+    @JoinColumn(name = "event_vendor_id")
+    private User event_vendor;
 
     @ManyToOne
     @JoinColumn(name = "event_type_id")

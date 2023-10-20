@@ -30,6 +30,11 @@ public class AddEventRequestDto {
 
     private String event_organizer;
 
+
+    @NotNull(message = "Event Vendor must be given")
+    @NotEmpty(message = "Event Vendor cannot be empty")
+    private String event_vendor;
+
     @NotNull(message = "Event description must be given")
     @NotEmpty(message = "Event description cannot be empty")
     private String description;
