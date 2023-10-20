@@ -2,6 +2,7 @@ package com.backend.controllers;
 
 
 import com.backend.dtos.AddPromoCodeDto;
+import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.AddEventResponseDto;
 import com.backend.models.Event;
@@ -22,10 +23,14 @@ public class EventController {
 
     private EventServiceImplementation eventService;
 
+    private HttpSession httpSession;
+
     @Autowired
-    public EventController(EventServiceImplementation eventService){
+    public EventController(EventServiceImplementation eventService, HttpSession httpSession){
         this.eventService= eventService;
+        this.httpSession= httpSession;
     }
+
 
     @GetMapping("/")
     public ResponseEntity<List<Event>> getAllEvents(){
@@ -48,15 +53,14 @@ public class EventController {
     }
 
     @PostMapping("/private/{accessToken}")
-    public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken, HttpSession httpSession){
-        String username= (String)httpSession.getAttribute("CurrentUser");
-        AddEventResponseDto eventDetails = this.eventService.getEventByAccessToken(accessToken, username);
+    public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken){
+        AddEventResponseDto eventDetails = this.eventService.getEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));
 
         return new ResponseEntity<>(eventDetails, HttpStatus.OK);
     }
 
     @PostMapping("/addEvent")
-    public ResponseEntity<?> addEvent(@Valid @RequestBody AddEventRequestDto addEventDto, HttpSession httpSession){
+    public ResponseEntity<?> addEvent(@Valid @RequestBody AddEventRequestDto addEventDto){
         addEventDto.setPublished_date(LocalDate.now());
         addEventDto.setEvent_organizer((String) httpSession.getAttribute("CurrentUser"));
 
@@ -64,10 +68,27 @@ public class EventController {
     }
 
     @PostMapping("/addPromoCode")
-    public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto, HttpSession httpSession){
+    public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto){
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
         this.eventService.addPromocode(promoCodeDto);
 
         return new ResponseEntity<>("Promocode Added Successfully",HttpStatus.OK);
+    }
+
+
+    @PostMapping("/event-access-request")
+    public ResponseEntity<?> getEventAccessRequests(){
+       List<EventAccessRequestsView> eventAccessRequestsViews=  this.eventService.getEventAccessRequests((String) httpSession.getAttribute("CurrentUser"));
+
+       return new ResponseEntity<>(eventAccessRequestsViews, HttpStatus.OK);
+    }
+
+    @PostMapping("/make-event-access-request/{accessToken}")
+    public ResponseEntity<?> sendEventAccessRequest(@PathVariable("accessToken") String accessToken){
+        String currentUser= (String) httpSession.getAttribute("CurrentUser");
+
+        this.eventService.makeEventAccessRequest(currentUser, accessToken);
+
+        return new ResponseEntity<>("Your request has been collected", HttpStatus.OK);
     }
 }
