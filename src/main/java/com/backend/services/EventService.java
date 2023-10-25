@@ -3,7 +3,7 @@ package com.backend.services;
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.addEvent.AddEventRequestDto;
-import com.backend.dtos.addEvent.AddEventResponseDto;
+import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
 import com.backend.models.PromoCode;
 
@@ -19,9 +19,9 @@ public interface EventService{
 
     public List<Event> getAllEvents();
 
-    public AddEventResponseDto addEvent(AddEventRequestDto addEventDto);
+    public EventResponseDto addEvent(AddEventRequestDto addEventDto);
 
-    public AddEventResponseDto getEventByAccessToken(String accessToken, String username);
+    public EventResponseDto getEventByAccessToken(String accessToken, String username);
 
     public PromoCode addPromocode(AddPromoCodeDto promoCodeDto);
 

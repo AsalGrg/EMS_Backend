@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Time;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +33,10 @@ public class Event {
 
 
     @Column(name = "event_date")
-    private LocalDate event_date;
+    private LocalDate eventDate;
+
+    @Column(name = "event_time")
+    private Time eventTime;
 
     @Column(name = "description")
     private String description;

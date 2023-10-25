@@ -2,8 +2,9 @@ package com.backend.serviceImpls;
 
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.EventAccessRequestsView;
+import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
-import com.backend.dtos.addEvent.AddEventResponseDto;
+import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceAlreadyExistsException;
@@ -14,7 +15,6 @@ import com.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.naming.AuthenticationException;
 import java.util.*;
 
 
@@ -35,6 +35,13 @@ public class EventServiceImplementation implements EventService {
 
     private RoleRepository roleRepository;
 
+
+    public EventResponseDto changeToEventDto(Event event){
+
+        EventResponseDto eventResponseDto= new EventResponseDto(event.getAccessToken(), event.getName(), event.getLocation(), event.getPublished_date(), event.getEventDate(), event.getEntryFee());
+        return eventResponseDto;
+
+    }
     @Autowired
     public EventServiceImplementation
             (EventRepository eventRepository, EventTypeRepository eventTypeRepository, UserRepository userRepository
@@ -86,10 +93,28 @@ public class EventServiceImplementation implements EventService {
         return events;
     }
 
+    //service method to get all the events from the filter such as time, date and place and venue
+    public List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto){
+        List<Event> filterEventsList = this.eventRepository.findByLocationAndEventTimeAndEventDateAndEventType_Title(
+                searchEventByFilterDto.getLocation(),
+                searchEventByFilterDto.getEvent_time(),
+                searchEventByFilterDto.getEvent_date(),
+                searchEventByFilterDto.getEvent_category()
+        );
 
+        if(filterEventsList.isEmpty()) throw new ResourceNotFoundException("Searched not found at the moment, you may other events");
+
+        List<EventResponseDto> filteredEventsView = new ArrayList<>();
+
+        for(Event event: filterEventsList){
+            filteredEventsView.add(changeToEventDto(event));
+        }
+
+        return filteredEventsView;
+    }
     //service method for adding new event
     @Override
-    public AddEventResponseDto addEvent(AddEventRequestDto addEventDto) {
+    public EventResponseDto addEvent(AddEventRequestDto addEventDto) {
 
         //checking if the event name already exists or not
         boolean eventNameExists= this.eventRepository.existsByName(addEventDto.getName());
@@ -123,7 +148,7 @@ public class EventServiceImplementation implements EventService {
         event.setName(addEventDto.getName());
         event.setLocation(addEventDto.getLocation());
         event.setPublished_date(addEventDto.getPublished_date());
-        event.setEvent_date(addEventDto.getEvent_date());
+        event.setEventDate(addEventDto.getEvent_date());
         event.setDescription(addEventDto.getDescription());
         event.setPrivate(addEventDto.isPrivate());
         event.setEntryFee(addEventDto.getEntryFee());
@@ -191,9 +216,8 @@ public class EventServiceImplementation implements EventService {
 
         }
 
-        AddEventResponseDto addEventResponseDto = new AddEventResponseDto(event.getAccessToken(), event.getName(), event.getLocation(),event.getPublished_date(), event.getEvent_date(), event.getEntryFee());
 
-        return addEventResponseDto;
+        return changeToEventDto(event);
     }
 
     //method for vendor to accept the addEvent requests from the client i.e. event hoster
@@ -227,7 +251,7 @@ public class EventServiceImplementation implements EventService {
     }
 
     @Override
-    public AddEventResponseDto getEventByAccessToken(String accessToken, String username) {
+    public EventResponseDto getEventByAccessToken(String accessToken, String username) {
         if(username==null){
             throw new NotAuthorizedException();
         }
@@ -243,7 +267,7 @@ public class EventServiceImplementation implements EventService {
 
         for(User user: usersInvited){
             if (user.getUsername().equals(username)){
-                return new AddEventResponseDto(event.getAccessToken(),event.getName(),event.getLocation(),event.getPublished_date(),event.getEvent_date(),event.getEntryFee());
+                return changeToEventDto(event);
             }
         }
 

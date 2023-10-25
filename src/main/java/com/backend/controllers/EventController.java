@@ -3,8 +3,9 @@ package com.backend.controllers;
 
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.EventAccessRequestsView;
+import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
-import com.backend.dtos.addEvent.AddEventResponseDto;
+import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
 import com.backend.serviceImpls.EventServiceImplementation;
 import jakarta.servlet.http.HttpSession;
@@ -52,9 +53,17 @@ public class EventController {
         return new ResponseEntity<>(this.eventService.getEventByType(type), HttpStatus.OK);
     }
 
+
+    @PostMapping ("/eventByFilter")
+    public ResponseEntity<?> getEventsByFilters(@Valid @RequestBody SearchEventByFilterDto searchEventByFilterDto){
+        List<EventResponseDto> filteredEvents = this.eventService.getEventsByFilter(searchEventByFilterDto);
+
+        return new ResponseEntity<>(filteredEvents, HttpStatus.OK);
+    }
+
     @PostMapping("/private/{accessToken}")
     public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken){
-        AddEventResponseDto eventDetails = this.eventService.getEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));
+        EventResponseDto eventDetails = this.eventService.getEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));
 
         return new ResponseEntity<>(eventDetails, HttpStatus.OK);
     }
@@ -72,7 +81,7 @@ public class EventController {
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
         this.eventService.addPromocode(promoCodeDto);
 
-        return new ResponseEntity<>("Promocode Added Successfully",HttpStatus.OK);
+        return new ResponseEntity<>("Promo code Added Successfully",HttpStatus.OK);
     }
 
 
