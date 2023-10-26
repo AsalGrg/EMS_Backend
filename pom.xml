@@ -54,6 +54,15 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+
+<!--        dependency for cloud service-->
+        <!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44 -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.35.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

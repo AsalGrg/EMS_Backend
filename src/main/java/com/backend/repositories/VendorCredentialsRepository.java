@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface VendorCredentialsRepository extends JpaRepository<VendorCredential, Integer> {
 
+    boolean existsByUser_Username(String username);
     Optional<VendorCredential> findByUser(User user);
     Optional<List<VendorCredential>> findByIsVerifiedAndIsDeclined(boolean isVerified, boolean isDeclined);
 
