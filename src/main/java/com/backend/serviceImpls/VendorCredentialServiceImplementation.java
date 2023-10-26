@@ -5,6 +5,7 @@ import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
 import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
+import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.Role;
 import com.backend.models.User;
@@ -29,11 +30,14 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
     private RoleRepository roleRepository;
 
+    private CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl;
+
     public VendorCredentialServiceImplementation
-            (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository){
+            (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository, CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl){
         this.vendorCredentialsRepo= vendorCredentialsRepository;
         this.userRepository= userRepository;
         this.roleRepository= roleRepository;
+        this.cloudinaryUploadServiceImpl= cloudinaryUploadServiceImpl;
     }
 
 
@@ -61,10 +65,18 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     @Override
     public VendorRegistrationResponse becomeVendor(VendorRegistrationRequestDto vendorRegistrationReq) {
 
+        if (this.vendorCredentialsRepo.existsByUser_Username(vendorRegistrationReq.getUsername())) {
+            throw new ResourceAlreadyExistsException("Your request has been collected already");
+        }
+
+        //saving the files of the vendors in the cloudinary as
+        String taxClearanceCertificateUrl=  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate());
+
         User user= checkUserCredentials(vendorRegistrationReq.getUsername(), "USER");
 
         VendorCredential vendorCredential= new VendorCredential();
         vendorCredential.setUser(user);
+        vendorCredential.setTaxClearanceCertificate(taxClearanceCertificateUrl);
         //other vendor related setting to be done ... to be continued
 
         VendorCredential savedCredentials= this.vendorCredentialsRepo.save(vendorCredential);

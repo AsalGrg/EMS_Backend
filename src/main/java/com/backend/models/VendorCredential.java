@@ -21,6 +21,9 @@ public class VendorCredential {
 //    private Streing faceBook link
 //    private String business_phoneNumber
 
+    @Column(name = "valid_tax_clearance_certificate")
+    private  String taxClearanceCertificate;
+
     @Column(name = "isVerified")
     private boolean isVerified;
 
