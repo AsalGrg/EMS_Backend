@@ -5,6 +5,7 @@ import jakarta.validation.Payload;
 import org.springframework.http.MediaType;
 
 import java.lang.annotation.*;
+import java.util.List;
 
 @Target({ElementType.FIELD,ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
