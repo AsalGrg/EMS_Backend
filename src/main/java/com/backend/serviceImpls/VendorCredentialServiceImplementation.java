@@ -70,14 +70,42 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
         }
 
         //saving the files of the vendors in the cloudinary as
-        String taxClearanceCertificateUrl=  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate());
+        String taxClearanceCertificateUrl =  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate(), "Vendor Documents");
+        String vendorRegistrationDocumentUrl =  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationDocument(), "Vendor Documents");
+        String vendorRegistrationFilledFormUrl =  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationFilledForm(), "Vendor Documents");
 
         User user= checkUserCredentials(vendorRegistrationReq.getUsername(), "USER");
 
         VendorCredential vendorCredential= new VendorCredential();
         vendorCredential.setUser(user);
+
+        //setting the urls where the documents are stored
         vendorCredential.setTaxClearanceCertificate(taxClearanceCertificateUrl);
+        vendorCredential.setVendorRegistrationDocument(vendorRegistrationDocumentUrl);
+        vendorCredential.setVendorRegistrationFilledForm(vendorRegistrationFilledFormUrl);
         //other vendor related setting to be done ... to be continued
+
+        vendorCredential.setBusinessEmail(vendorRegistrationReq.getBusinessEmail());
+        vendorCredential.setVendorDescription(vendorRegistrationReq.getVendorDescription());
+
+
+        //setting the social media fields of the vendor
+        List<String> vendorSocialMediaLinks= vendorRegistrationReq.getSocialMediaLinks();
+        for(int i=0;i<1; i++){
+            //in list first: facebook, second: instgram, third: tiktok, last: linkedIn
+            vendorCredential.setFacebookLink(vendorSocialMediaLinks.get(0));
+            vendorCredential.setInstagramLink(vendorSocialMediaLinks.get(1));
+            vendorCredential.setTiktokLink(vendorSocialMediaLinks.get(2));
+            vendorCredential.setLinkedinLink(vendorSocialMediaLinks.get(3));
+        }
+
+        //setting the contacts fields of the vendor
+        List<String> vendorContacts = vendorRegistrationReq.getSocialMediaLinks();
+        for(int i=0;i<1; i++){
+            //in list first: facebook, second: instgram, third: tiktok, last: linkedIn
+            vendorCredential.setContactNumber1(vendorContacts.get(0));
+            vendorCredential.setContactNumber2(vendorContacts.get(1));
+        }
 
         VendorCredential savedCredentials= this.vendorCredentialsRepo.save(vendorCredential);
 

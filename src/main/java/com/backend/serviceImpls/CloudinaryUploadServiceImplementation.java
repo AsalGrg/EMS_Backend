@@ -18,10 +18,13 @@ public class CloudinaryUploadServiceImplementation implements CloudinaryUploadSe
 
 
     @Override
-    public String uploadImage(MultipartFile file) {
+    public String uploadImage(MultipartFile file, String folderName) {
 
         try {
-            Map fileData= cloudinary.uploader().upload(file.getBytes(), Map.of());
+            //the folder name is the name of the folder where the files are to be saved. Different folders for different type os files such as User Dps, Vendor Documents etc.
+            Map fileData= cloudinary.uploader().upload(file.getBytes() , Map.of(
+                    "folder", folderName
+            ));
 
             //from the map we get the file url where it is stored in the cloud.
             String fileUrl= (String) fileData.get("url");
