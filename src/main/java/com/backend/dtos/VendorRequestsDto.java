@@ -7,11 +7,12 @@ import lombok.Setter;
 @Setter
 public class VendorRequestsDto {
 
-    private int credential_id;
-    private String username;
-    private String email;
+    private String vendorName;
+    private String businessEmail;
     private String address;
+    private String vendorDescription;
+    private String vendorRegistrationDocument;
+    private String taxClearanceCertificate;
+    private String vendorRegistrationFilledForm;
 
-    private boolean verified;
-    private boolean declined;
 }

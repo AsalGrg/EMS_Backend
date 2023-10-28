@@ -28,6 +28,9 @@ public class Event {
     @Column(name = "location")
     private String location;
 
+    @Column(name = "venue")
+    private String eventVenue;
+
     @Column(name = "published_date")
     private LocalDate published_date;
 
@@ -47,8 +50,11 @@ public class Event {
     @Column(name = "isPrivate")
     private boolean isPrivate;
 
-    @Column(name = "seats")
+    @Column(name = "available_seats")
     private int seats;
+
+    @Column(name = "tickets_sold")
+    private int ticketSold;
 
     @Column(name = "access_token")
     private String accessToken;
@@ -58,6 +64,7 @@ public class Event {
 
     @Column(name = "isDeclined")
     private boolean isDeclined;
+
 
     @ManyToOne
     @JoinColumn(name = "event_organizer_id")

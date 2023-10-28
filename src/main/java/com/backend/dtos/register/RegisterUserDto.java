@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -36,4 +37,9 @@ public class RegisterUserDto {
     @NotNull(message = "Address is required")
     private String address;
 
+    @NotNull(message = "Phone number is required")
+    @NotEmpty(message = "Phone number cannot be empty")
+    private String phoneNumber;
+
+    private MultipartFile userDp;
 }

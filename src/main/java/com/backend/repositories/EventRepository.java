@@ -16,7 +16,7 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Integer> {
 
-    public List<Event> findByLocationAndEventTimeAndEventDateAndEventType_Title(String location, Time eventTime, LocalDate eventDate, String eventTitle);
+    public List<Event> findByLocationAndEventTimeAndEventDateAndEventType_TitleAndIsAccepted(String location, Time eventTime, LocalDate eventDate, String eventTitle, boolean isAccepted);
     public Optional<Event>  findEventByName(String name);
 
     public Event findEventById(int id);
@@ -27,6 +27,8 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     public List<Event> findEventByType(@Param("name") String type);
 
     public List<Event> findByIsAcceptedAndIsDeclined(boolean isAccepted, boolean isDeclined);
+
+    public List<Event> findAllByIsAcceptedAAndEventDateAfterOrderByTicketSoldDesc(boolean isAccepted, LocalDate eventDateAfter);
     public boolean existsByName(String name);
 
     public Optional<Event> findByAccessToken(String accessToken);

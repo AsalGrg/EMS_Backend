@@ -15,6 +15,7 @@ import com.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -95,14 +96,15 @@ public class EventServiceImplementation implements EventService {
 
     //service method to get all the events from the filter such as time, date and place and venue
     public List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto){
-        List<Event> filterEventsList = this.eventRepository.findByLocationAndEventTimeAndEventDateAndEventType_Title(
+        List<Event> filterEventsList = this.eventRepository.findByLocationAndEventTimeAndEventDateAndEventType_TitleAndIsAccepted(
                 searchEventByFilterDto.getLocation(),
                 searchEventByFilterDto.getEvent_time(),
                 searchEventByFilterDto.getEvent_date(),
-                searchEventByFilterDto.getEvent_category()
+                searchEventByFilterDto.getEvent_category(),
+                true
         );
 
-        if(filterEventsList.isEmpty()) throw new ResourceNotFoundException("Searched not found at the moment, you may other events");
+        if(filterEventsList.isEmpty()) throw new ResourceNotFoundException("Searched event not found at the moment, you may like other events");
 
         List<EventResponseDto> filteredEventsView = new ArrayList<>();
 
@@ -112,6 +114,22 @@ public class EventServiceImplementation implements EventService {
 
         return filteredEventsView;
     }
+
+    //service handler method to get the trending events
+    public List<EventResponseDto> getTrendingEvents(){
+        List<Event> allTrendingEvents= this.eventRepository.findAllByIsAcceptedAAndEventDateAfterOrderByTicketSoldDesc(true, LocalDate.now());
+
+        List<EventResponseDto> allTrendingEventsView= new ArrayList<>();
+
+        for(Event each: allTrendingEvents){
+            allTrendingEventsView.add(changeToEventDto(each));
+        }
+
+        return allTrendingEventsView;
+    }
+
+
+
     //service method for adding new event
     @Override
     public EventResponseDto addEvent(AddEventRequestDto addEventDto) {

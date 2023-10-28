@@ -61,6 +61,13 @@ public class EventController {
         return new ResponseEntity<>(filteredEvents, HttpStatus.OK);
     }
 
+    @GetMapping("/trendingEvents")
+    public ResponseEntity<?> getTrendingEvents(){
+        List<EventResponseDto> trendingEvents = this.eventService.getTrendingEvents();
+
+        return ResponseEntity.ok(trendingEvents);
+    }
+
     @PostMapping("/private/{accessToken}")
     public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken){
         EventResponseDto eventDetails = this.eventService.getEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));

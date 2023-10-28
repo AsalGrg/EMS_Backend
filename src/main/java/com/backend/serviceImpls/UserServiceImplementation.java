@@ -9,9 +9,11 @@ import com.backend.models.User;
 import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
 import com.backend.services.UserService;
+import com.cloudinary.Cloudinary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,10 +24,13 @@ public class UserServiceImplementation implements UserService {
     private UserRepository userRepository;
     private RoleRepository roleRepository;
 
+    private CloudinaryUploadServiceImplementation cloudinary;
+
     @Autowired
-    public UserServiceImplementation(UserRepository userRepository, RoleRepository roleRepository){
+    public UserServiceImplementation(UserRepository userRepository, RoleRepository roleRepository, CloudinaryUploadServiceImplementation cloudinary){
         this.userRepository= userRepository;
         this.roleRepository= roleRepository;
+        this.cloudinary= cloudinary;
     }
 
 
@@ -75,11 +80,22 @@ public class UserServiceImplementation implements UserService {
             throw new ResourceAlreadyExistsException("Email already exists");
         }
 
+        String userDpUrl= null;
+
+        if (registerUserDto.getUserDp()!=null){
+            userDpUrl= this.cloudinary.uploadImage(registerUserDto.getUserDp(), "User Dps");
+        }
+
         User user= new User();
         user.setEmail(registerUserDto.getEmail());
         user.setUsername(registerUserDto.getUsername());
         user.setAddress(registerUserDto.getAddress());
         user.setEvents(null);
+        user.setPhoneNumber(registerUserDto.getPhoneNumber());
+
+        //saving the url of the user dp in the
+        user.setUserDp(userDpUrl);
+
 
         roleRepository.findByTitle("USER").ifPresentOrElse(role -> user.setUserRoles(List.of(role)) , ()->{
             Role role = new Role();

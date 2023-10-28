@@ -1,5 +1,6 @@
 package com.backend.serviceImpls;
 
+import com.backend.dtos.VendorDetailViewDto;
 import com.backend.dtos.VendorRequestsDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
@@ -40,7 +41,38 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
         this.cloudinaryUploadServiceImpl= cloudinaryUploadServiceImpl;
     }
 
+    VendorDetailViewDto changeToVendorViewDto(VendorCredential vendorCredential){
 
+       VendorDetailViewDto vendorDetailViewDto=  new VendorDetailViewDto();
+       vendorDetailViewDto.setVendorName(vendorCredential.getUser().getUsername());
+       vendorDetailViewDto.setVendorDescription(vendorCredential.getVendorDescription());
+       vendorDetailViewDto.setFacebookLink(vendorCredential.getFacebookLink());
+       vendorDetailViewDto.setInstagramLink(vendorCredential.getInstagramLink());
+       vendorDetailViewDto.setTiktokLink(vendorCredential.getTiktokLink());
+       vendorDetailViewDto.setLinkedInLink(vendorCredential.getLinkedinLink());
+       vendorDetailViewDto.setRatings(vendorCredential.getRating());
+       vendorDetailViewDto.setBusinessEmail(vendorCredential.getBusinessEmail());
+       vendorDetailViewDto.setContactNumber1(vendorCredential.getContactNumber1());
+       vendorDetailViewDto.setContactNumber2(vendorCredential.getContactNumber2());
+
+       return vendorDetailViewDto;
+    }
+
+    //service Method for getting all the vendors
+    public List<VendorDetailViewDto> getAllVendors(){
+        List<VendorCredential> allVendors= this.vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(true, false).get();
+
+        if(allVendors.isEmpty()){
+            throw new ResourceNotFoundException("No vendors at the moment!");
+        }
+        List<VendorDetailViewDto> allVendorsView= new ArrayList<>();
+
+        for(VendorCredential vendorCredential: allVendors){
+            allVendorsView.add(changeToVendorViewDto(vendorCredential));
+        }
+
+        return allVendorsView;
+    }
     //method for checking the user credentials
     public User checkUserCredentials(String username, String role){
 
@@ -114,6 +146,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
         throw new InternalServerError();
     }
 
+    //service method to get all the become vendor requests dto.qqqqqq
     @Override
     public List<VendorRequestsDto> getVendorRequests(String username) {
 
@@ -136,14 +169,17 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
         return vendorRequestsView;
     }
 
+
     private static VendorRequestsDto getVendorRequestsDto(VendorCredential vendorCredential) {
         VendorRequestsDto vendorRequestsDto= new VendorRequestsDto();
-        vendorRequestsDto.setUsername(vendorCredential.getUser().getUsername());
-        vendorRequestsDto.setCredential_id(vendorCredential.getCredential_id());
-        vendorRequestsDto.setEmail(vendorCredential.getUser().getEmail());
+        vendorRequestsDto.setVendorName(vendorCredential.getUser().getUsername());
+        vendorRequestsDto.setBusinessEmail(vendorCredential.getBusinessEmail());
+        vendorRequestsDto.setVendorDescription(vendorCredential.getVendorDescription());
         vendorRequestsDto.setAddress(vendorCredential.getUser().getAddress());
-        vendorRequestsDto.setDeclined(vendorCredential.isDeclined());
-        vendorRequestsDto.setVerified(vendorCredential.isVerified());
+
+        vendorRequestsDto.setVendorRegistrationDocument(vendorCredential.getVendorRegistrationDocument());
+        vendorRequestsDto.setTaxClearanceCertificate(vendorCredential.getTaxClearanceCertificate());
+        vendorRequestsDto.setVendorRegistrationFilledForm(vendorCredential.getVendorRegistrationFilledForm());
         return vendorRequestsDto;
     }
 
