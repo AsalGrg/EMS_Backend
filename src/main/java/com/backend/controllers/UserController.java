@@ -6,17 +6,17 @@ import com.backend.dtos.register.RegisterUserDto;
 import com.backend.models.User;
 import com.backend.repositories.UserRepository;
 import com.backend.serviceImpls.UserServiceImplementation;
+import com.backend.utils.FileNotEmpty;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 //@RequestMapping("user/auth")
@@ -27,14 +27,22 @@ public class UserController {
 
     private UserServiceImplementation userService;
 
+    private HttpSession httpSession;
+
     @Autowired
-    public UserController(UserServiceImplementation userService) {
+    public UserController(UserServiceImplementation userService, HttpSession httpSession) {
         this.userService = userService;
+        this.httpSession= httpSession;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody @Valid RegisterUserDto registerUser, HttpSession httpSession){
+    public ResponseEntity<?> registerUser(@RequestPart("userDetails") @Valid RegisterUserDto registerUser,
+                                          @RequestPart(value = "userDp" , required = false) @Valid @FileNotEmpty(value = MediaType.IMAGE_JPEG_VALUE, message = "Please provide a JPEG image file for user dp.") MultipartFile userDp) {
+
+        registerUser.setUserDp(userDp);
+
         User user= this.userService.registerUser(registerUser);
+
 
         if(user!=null){
             httpSession.setAttribute("CurrentUser", user.getUsername());

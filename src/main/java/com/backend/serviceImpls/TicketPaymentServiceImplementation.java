@@ -55,6 +55,11 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
                     new ResourceNotFoundException("Event with title "+paymentRequestDto.getEvent_name()+ " does not exist")
                 );
 
+        //checking if the event seats are available
+        if(eventDetails.getSeats()==0){
+            throw new ResourceNotFoundException("Sorry, the tickets are already sold out!");
+        }
+
         double net_total= eventDetails.getEntryFee()* paymentRequestDto.getQuantity();
         double grand_total;
         double savedAmount;
@@ -109,7 +114,9 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
             throw new InternalServerError();
         }
 
+        //after the payment is done, the event detials such as available seats and ticketsSold are updated here
         eventDetails.setSeats(eventDetails.getSeats()-paymentRequestDto.getQuantity());
+        eventDetails.setTicketSold(eventDetails.getTicketSold()+paymentRequestDto.getQuantity());
         this.eventRepository.save(eventDetails);
 
 

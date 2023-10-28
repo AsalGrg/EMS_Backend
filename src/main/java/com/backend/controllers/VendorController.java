@@ -1,5 +1,6 @@
 package com.backend.controllers;
 
+import com.backend.dtos.VendorDetailViewDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
 import com.backend.repositories.EventAccessRequestRepository;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -29,8 +31,6 @@ import java.util.Map;
 //@RequestMapping("/vendor")
 public class VendorController {
 
-    @Autowired
-    private Cloudinary cloudinary;
     private VendorCredentialServiceImplementation vendorCredentialServiceImpl;
 
     private EventServiceImplementation eventServiceImpl;
@@ -50,40 +50,12 @@ public class VendorController {
         this.objectMapper= objectMapper;
     }
 
+    @GetMapping("/allVendors")
+    public ResponseEntity<?> getAllVendors(){
+        List<VendorDetailViewDto> allVendorsView= this.vendorCredentialServiceImpl.getAllVendors();
 
-//    @PostMapping("/become-a-vendor")
-////    public ResponseEntity<?> becomeVendor(@Valid @RequestBody VendorRegistrationRequestDto vendorRegistrationReq)
-//
-//    public ResponseEntity<?> becomeVendor(@Valid @FileNotEmpty(value=MediaType.APPLICATION_PDF_VALUE, message = "Please note that we require a Tax Clearance Document in PDF format") @RequestParam("taxClearanceFile") MultipartFile taxClearanceFile,
-//                                          @Valid @FileNotEmpty(value=MediaType.APPLICATION_PDF_VALUE, message = "Please note that we require a Business Registration Document in PDF format") @RequestParam("vendorRegistrationDocument") MultipartFile vendorRegistrationDocument,
-//                                          @Valid @FileNotEmpty(value=MediaType.APPLICATION_PDF_VALUE, message = "Please note that we require a Filled Vendor Registration Form in PDF format") @RequestParam("vendorRegistrationFilledForm") MultipartFile vendorRegistrationFilledForm,
-//                                          @RequestParam("vendorData") String vendorData){
-//
-////        vendorRegistrationReq.setUsername((String) httpSession.getAttribute("CurrentUser"));
-////        VendorRegistrationResponse registrationResponse= this.vendorCredentialServiceImpl.becomeVendor(vendorRegistrationReq);
-//
-////        return new ResponseEntity<>(registrationResponse, HttpStatus.OK);
-//
-////            VendorRegistrationRequestDto vendorRegistrationRequestDto= objectMapper.readValue(vendorData, VendorRegistrationRequestDto.class);
-//        VendorRegistrationRequestDto vendorRegistrationRequestDto= null;
-//
-//        try {
-//            vendorRegistrationRequestDto = objectMapper.readValue(vendorData, VendorRegistrationRequestDto.class);
-//            logger.info("Vendor:{}", vendorData);
-//
-//            logger.info("VendorEmail: {}", vendorRegistrationRequestDto.getBusinessEmail());
-//
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException("Invalid JSON value, error while converting to the JSON");
-//        }
-//        vendorRegistrationRequestDto.setTaxClearanceCertificate(taxClearanceFile);
-//        vendorRegistrationRequestDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
-//
-//        VendorRegistrationResponse registrationResponse= this.vendorCredentialServiceImpl.becomeVendor(vendorRegistrationRequestDto);
-//        return new ResponseEntity<>(registrationResponse, HttpStatus.OK);
-//
-//
-//    }
+        return ResponseEntity.ok(allVendorsView);
+    }
 
     @PostMapping("/become-a-vendor")
     public ResponseEntity<?> becomeVendor(@RequestPart("vendorData") @Valid VendorRegistrationRequestDto vendorRegistrationRequestDto,
