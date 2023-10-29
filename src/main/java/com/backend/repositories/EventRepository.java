@@ -28,7 +28,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     public List<Event> findByIsAcceptedAndIsDeclined(boolean isAccepted, boolean isDeclined);
 
-    public List<Event> findAllByIsAcceptedAAndEventDateAfterOrderByTicketSoldDesc(boolean isAccepted, LocalDate eventDateAfter);
+    public List<Event> findAllByIsAcceptedAndEventDateAfterOrderByTicketSoldDesc(boolean isAccepted, LocalDate eventDateAfter);
     public boolean existsByName(String name);
 
     public Optional<Event> findByAccessToken(String accessToken);

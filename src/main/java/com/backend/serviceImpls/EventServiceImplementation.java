@@ -117,7 +117,7 @@ public class EventServiceImplementation implements EventService {
 
     //service handler method to get the trending events
     public List<EventResponseDto> getTrendingEvents(){
-        List<Event> allTrendingEvents= this.eventRepository.findAllByIsAcceptedAAndEventDateAfterOrderByTicketSoldDesc(true, LocalDate.now());
+        List<Event> allTrendingEvents= this.eventRepository.findAllByIsAcceptedAndEventDateAfterOrderByTicketSoldDesc(true, LocalDate.now());
 
         List<EventResponseDto> allTrendingEventsView= new ArrayList<>();
 
