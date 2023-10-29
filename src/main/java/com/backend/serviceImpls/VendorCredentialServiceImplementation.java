@@ -15,12 +15,14 @@ import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
 import com.backend.repositories.VendorCredentialsRepository;
 import com.backend.services.VendorCredentialService;
+import com.backend.utils.EmailMessages;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -33,12 +35,18 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
     private CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl;
 
+    private EmailServiceImplementation emailServiceImplementation;
+    private EmailMessages emailMessages;
+
     public VendorCredentialServiceImplementation
-            (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository, CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl){
+            (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository,
+             CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl, EmailServiceImplementation emailServiceImplementation, EmailMessages emailMessages){
         this.vendorCredentialsRepo= vendorCredentialsRepository;
         this.userRepository= userRepository;
         this.roleRepository= roleRepository;
         this.cloudinaryUploadServiceImpl= cloudinaryUploadServiceImpl;
+        this.emailServiceImplementation =emailServiceImplementation;
+        this.emailMessages= emailMessages;
     }
 
     VendorDetailViewDto changeToVendorViewDto(VendorCredential vendorCredential){
@@ -232,9 +240,27 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
                     this.userRepository.save(vendorCredentials);
                 });
+
+                //after the vendor is approved sending email to the vendor
+                Map<String, String> vendorAcceptanceMessageAndSubject = this.emailMessages.vendorAcceptanceMessage(vendorCredential.getUser().getUsername());
+                String subject= vendorAcceptanceMessageAndSubject.get("subject");
+                String body= vendorAcceptanceMessageAndSubject.get("message");
+
+                //for now making the reciever me, to check only. Should pass the vendor email instead
+                this.emailServiceImplementation.sendEmail("asal.gurung.a21.2@icp.edu.np", subject, body);
             }
 
-            case "decline" -> vendorCredential.setDeclined(true);
+            case "decline" -> {
+                vendorCredential.setDeclined(true);
+
+                //after the vendor is declined, sending email to the vendor
+                Map<String, String> vendorAcceptanceMessageAndSubject = this.emailMessages.vendorDeclinedMessage(vendorCredential.getUser().getUsername());
+                String subject= vendorAcceptanceMessageAndSubject.get("subject");
+                String body= vendorAcceptanceMessageAndSubject.get("message");
+
+                //for now making the reciever me, to check only. Should pass the vendor email instead
+                this.emailServiceImplementation.sendEmail("asal.gurung.a21.2@icp.edu.np", subject, body);
+            }
 
             //this conditions for further vendor actions such as terminating them etc.
             case "terminate" -> vendorCredential.setTerminated(true);
