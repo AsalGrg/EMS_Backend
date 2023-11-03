@@ -2,22 +2,20 @@ package com.backend.utils;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import org.springframework.http.MediaType;
 
 import java.lang.annotation.*;
-import java.util.List;
 
 @Target({ElementType.FIELD,ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Constraint(validatedBy = CheckForMulitpartFile.class)
+@Constraint(validatedBy = CheckForImage.class)
 
-public @interface FileNotEmpty {
-    public String value() default MediaType.ALL_VALUE;
-    public String message() default "${javax.validation.constraints.ValidMediaType.message}";
+
+public @interface IsImage {
+
+    public String message() default "An image file is required";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-
 }
