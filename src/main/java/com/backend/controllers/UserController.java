@@ -7,6 +7,7 @@ import com.backend.models.User;
 import com.backend.repositories.UserRepository;
 import com.backend.serviceImpls.UserServiceImplementation;
 import com.backend.utils.FileNotEmpty;
+import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -15,10 +16,13 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
+@CrossOrigin("*")
+@Validated
 //@RequestMapping("user/auth")
 public class UserController {
 
@@ -37,7 +41,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestPart("userDetails") @Valid RegisterUserDto registerUser,
-                                          @RequestPart(value = "userDp" , required = false) @Valid @FileNotEmpty(value = MediaType.IMAGE_JPEG_VALUE, message = "Please provide a JPEG image file for user dp.") MultipartFile userDp) {
+                                          @RequestPart(value = "userDp" , required = false) @IsImage MultipartFile userDp) {
 
         registerUser.setUserDp(userDp);
 

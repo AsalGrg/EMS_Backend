@@ -8,17 +8,24 @@ import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
 import com.backend.serviceImpls.EventServiceImplementation;
+import com.backend.utils.FileNotEmpty;
+import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @RestController
+@Validated
+@CrossOrigin("*")
 //@RequestMapping("/events")
 public class EventController {
 
@@ -33,7 +40,7 @@ public class EventController {
     }
 
 
-    @GetMapping("/")
+    @GetMapping("/allEvents")
     public ResponseEntity<List<Event>> getAllEvents(){
         return new ResponseEntity<>(this.eventService.getAllEvents(), HttpStatus.OK);
     }
@@ -76,9 +83,12 @@ public class EventController {
     }
 
     @PostMapping("/addEvent")
-    public ResponseEntity<?> addEvent(@Valid @RequestBody AddEventRequestDto addEventDto){
-        addEventDto.setPublished_date(LocalDate.now());
+    public ResponseEntity<?> addEvent(@Valid @RequestPart("eventDetails") AddEventRequestDto addEventDto,
+                                      @IsImage @RequestPart(value = "eventCoverPhoto" ,required = false)MultipartFile eventCoverPhoto){
+//        addEventDto.setPublished_date(LocalDate.now());
         addEventDto.setEvent_organizer((String) httpSession.getAttribute("CurrentUser"));
+        addEventDto.setEventCoverPhoto(eventCoverPhoto);
+
 
         return new ResponseEntity<>(this.eventService.addEvent(addEventDto), HttpStatus.OK);
     }

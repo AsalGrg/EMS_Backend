@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin("*")
+
 @Validated
 //@RequestMapping("/vendor")
 public class VendorController {

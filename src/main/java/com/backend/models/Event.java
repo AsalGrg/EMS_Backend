@@ -65,6 +65,8 @@ public class Event {
     @Column(name = "isDeclined")
     private boolean isDeclined;
 
+    @Column(name = "event_cover_image")
+    private String eventCoverImage;
 
     @ManyToOne
     @JoinColumn(name = "event_organizer_id")

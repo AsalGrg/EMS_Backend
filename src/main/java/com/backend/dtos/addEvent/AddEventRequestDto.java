@@ -4,14 +4,17 @@ package com.backend.dtos.addEvent;
 import com.backend.models.PromoCode;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class AddEventRequestDto {
 
 
@@ -19,8 +22,8 @@ public class AddEventRequestDto {
     @NotEmpty(message = "Event name cannot be empty")
     private String name;
 
-    @NotNull(message = "Event name must be given")
-    @NotEmpty(message = "Event name cannot be empty")
+    @NotNull(message = "Event location must be given")
+    @NotEmpty(message = "Event location cannot be empty")
     private String location;
 
     @NotNull(message = "Event date must be given")
@@ -52,6 +55,8 @@ public class AddEventRequestDto {
     @NotNull(message = "Event name must be given")
     @NotEmpty(message = "Event name cannot be empty")
     private String eventType;
+
+    private MultipartFile eventCoverPhoto;
 
     private List<PromoCode> promoCodes;
 
