@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.sql.Time;
 import java.time.LocalDate;
-import java.util.Date;
 
 @Getter
 @Setter

@@ -22,10 +22,10 @@ import org.springframework.stereotype.Service;
 
 public class TicketPaymentServiceImplementation implements TicketPaymentService {
 
-    private TicketPaymentRepository ticketPaymentRepository;
-    private EventRepository eventRepository;
-    private UserRepository userRepository;
-    private PromocodeRepository promocodeRepository;
+    private final TicketPaymentRepository ticketPaymentRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+    private final PromocodeRepository promocodeRepository;
 
     @Autowired
     public TicketPaymentServiceImplementation(TicketPaymentRepository ticketPaymentRepository, EventRepository eventRepository, PromocodeRepository promocodeRepository, UserRepository userRepository){

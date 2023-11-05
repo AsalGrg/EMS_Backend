@@ -3,18 +3,13 @@ package com.backend.controllers;
 import com.backend.dtos.VendorDetailViewDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
-import com.backend.repositories.EventAccessRequestRepository;
 import com.backend.serviceImpls.EventServiceImplementation;
 import com.backend.serviceImpls.VendorCredentialServiceImplementation;
 import com.backend.utils.FileNotEmpty;
-import com.cloudinary.Cloudinary;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin("*")
@@ -33,28 +26,26 @@ import java.util.Map;
 //@RequestMapping("/vendor")
 public class VendorController {
 
-    private VendorCredentialServiceImplementation vendorCredentialServiceImpl;
+    private final VendorCredentialServiceImplementation vendorCredentialServiceImpl;
 
-    private EventServiceImplementation eventServiceImpl;
+    private final EventServiceImplementation eventServiceImpl;
 
-    private HttpSession httpSession;
+    private final HttpSession httpSession;
 
-    private ObjectMapper objectMapper;
+//    private final ObjectMapper objectMapper;
 
     Logger logger= LoggerFactory.getLogger(VendorController.class);
 
     public VendorController
-            (VendorCredentialServiceImplementation vendorCredentialServiceImpl,HttpSession httpSession, EventServiceImplementation eventServiceImpl
-            ,ObjectMapper objectMapper){
+            (VendorCredentialServiceImplementation vendorCredentialServiceImpl,HttpSession httpSession, EventServiceImplementation eventServiceImpl){
         this.vendorCredentialServiceImpl= vendorCredentialServiceImpl;
         this.eventServiceImpl= eventServiceImpl;
         this.httpSession= httpSession;
-        this.objectMapper= objectMapper;
     }
 
     @GetMapping("/allVendors")
     public ResponseEntity<?> getAllVendors(){
-        List<VendorDetailViewDto> allVendorsView= this.vendorCredentialServiceImpl.getAllVendors();
+        List<VendorDetailViewDto> allVendorsView= vendorCredentialServiceImpl.getAllVendors();
 
         return ResponseEntity.ok(allVendorsView);
     }
@@ -74,7 +65,7 @@ public class VendorController {
         vendorRegistrationRequestDto.setVendorRegistrationFilledForm(vendorRegistrationFilledForm);
 
         //now passing the vendor request dto to the becomeVendor service method as
-        VendorRegistrationResponse vendorRegistrationResponse = this.vendorCredentialServiceImpl.becomeVendor(vendorRegistrationRequestDto);
+        VendorRegistrationResponse vendorRegistrationResponse = vendorCredentialServiceImpl.becomeVendor(vendorRegistrationRequestDto);
 
         return ResponseEntity.ok(vendorRegistrationResponse);
     }
@@ -83,7 +74,7 @@ public class VendorController {
     public ResponseEntity<?> addEventVendorRequestAction(@PathVariable("eventName") String eventName, @PathVariable("action")String action){
         String username = (String)httpSession.getAttribute("CurrentUser");
 
-        this.eventServiceImpl.addEventVendorRequestAction(username, action, eventName);
+        eventServiceImpl.addEventVendorRequestAction(username, action, eventName);
 
         return new ResponseEntity<>("Add request event "+action+"ed successfully", HttpStatus.OK);
     }

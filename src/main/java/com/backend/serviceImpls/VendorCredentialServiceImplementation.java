@@ -16,9 +16,8 @@ import com.backend.repositories.UserRepository;
 import com.backend.repositories.VendorCredentialsRepository;
 import com.backend.services.VendorCredentialService;
 import com.backend.utils.EmailMessages;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpServerErrorException;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,15 +27,15 @@ import java.util.Map;
 @Service
 public class VendorCredentialServiceImplementation implements VendorCredentialService {
 
-    private VendorCredentialsRepository vendorCredentialsRepo;
-    private UserRepository userRepository;
+    private final VendorCredentialsRepository vendorCredentialsRepo;
+    private final UserRepository userRepository;
 
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    private CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl;
+    private final CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl;
 
-    private EmailServiceImplementation emailServiceImplementation;
-    private EmailMessages emailMessages;
+    private final EmailServiceImplementation emailServiceImplementation;
+    private final EmailMessages emailMessages;
 
     public VendorCredentialServiceImplementation
             (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository,
