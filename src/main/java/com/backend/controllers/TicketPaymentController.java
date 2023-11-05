@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin("*")
 public class TicketPaymentController {
 
-    private TicketPaymentServiceImplementation ticketPaymentServiceImpl;
+    private final TicketPaymentServiceImplementation ticketPaymentServiceImpl;
 
     @Autowired
     public TicketPaymentController(TicketPaymentServiceImplementation ticketPaymentServiceImpl){
@@ -28,7 +28,7 @@ public class TicketPaymentController {
     @PostMapping("/makePayment")
     public ResponseEntity<?> makePayment(@Valid @RequestBody PaymentRequestDto paymentRequestDto, HttpSession httpSession){
         paymentRequestDto.setUsername((String)httpSession.getAttribute("CurrentUser"));
-        PaymentResponseDto paymentResponseDto= this.ticketPaymentServiceImpl.makePayment(paymentRequestDto);
+        PaymentResponseDto paymentResponseDto= ticketPaymentServiceImpl.makePayment(paymentRequestDto);
 
         return (new ResponseEntity<>(paymentResponseDto, HttpStatus.OK));
     }

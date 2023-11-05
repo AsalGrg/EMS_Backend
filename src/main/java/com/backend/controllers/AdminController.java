@@ -2,11 +2,8 @@ package com.backend.controllers;
 
 
 import com.backend.dtos.VendorRequestsDto;
-import com.backend.models.User;
-import com.backend.models.VendorCredential;
 import com.backend.serviceImpls.VendorCredentialServiceImplementation;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +16,9 @@ import java.util.List;
 public class AdminController {
 
 
-    private HttpSession httpSession;
+    private final HttpSession httpSession;
 
-    private VendorCredentialServiceImplementation vendorCredentialServiceImplementation;
+    private final VendorCredentialServiceImplementation vendorCredentialServiceImplementation;
 
     public AdminController(VendorCredentialServiceImplementation vendorCredentialServiceImplementation,HttpSession httpSession){
         this.vendorCredentialServiceImplementation= vendorCredentialServiceImplementation;
@@ -35,7 +32,7 @@ public class AdminController {
         //here the username is of the current user to check its credentials
         String username= (String) httpSession.getAttribute("CurrentUser");
 
-        List<VendorRequestsDto> vendorRequests= this.vendorCredentialServiceImplementation.getVendorRequests(username);
+        List<VendorRequestsDto> vendorRequests= vendorCredentialServiceImplementation.getVendorRequests(username);
 
         return new ResponseEntity<>(vendorRequests, HttpStatus.OK);
     }
@@ -56,7 +53,7 @@ public class AdminController {
 
         String username = (String) httpSession.getAttribute("CurrentUser");
 
-        List<VendorRequestsDto> terminatedVendors = this.vendorCredentialServiceImplementation.getTerminatedVendors(username);
+        List<VendorRequestsDto> terminatedVendors = vendorCredentialServiceImplementation.getTerminatedVendors(username);
 
         return new ResponseEntity<>(terminatedVendors, HttpStatus.OK);
     }

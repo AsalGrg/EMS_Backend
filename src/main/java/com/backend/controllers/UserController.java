@@ -29,9 +29,9 @@ public class UserController {
 
     //for now creating a session to store the user details
 
-    private UserServiceImplementation userService;
+    private final UserServiceImplementation userService;
 
-    private HttpSession httpSession;
+    private final HttpSession httpSession;
 
     @Autowired
     public UserController(UserServiceImplementation userService, HttpSession httpSession) {
@@ -45,7 +45,7 @@ public class UserController {
 
         registerUser.setUserDp(userDp);
 
-        User user= this.userService.registerUser(registerUser);
+        User user= userService.registerUser(registerUser);
 
 
         if(user!=null){
@@ -57,7 +57,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginUserDto loginUser, HttpSession httpSession){
-        User user= this.userService.loginUser(loginUser);
+        User user= userService.loginUser(loginUser);
 
         if(user!=null){
             httpSession.setAttribute("CurrentUser", user.getUsername());
@@ -72,7 +72,7 @@ public class UserController {
     @PostMapping("/admin-signup")
     public ResponseEntity<?> signUpAdmin(@Valid @RequestBody RegisterUserDto registerUserDto, HttpSession httpSession){
 
-        User user= this.userService.registerAdmin(registerUserDto);
+        User user= userService.registerAdmin(registerUserDto);
 
         if(user!=null){
             httpSession.setAttribute("CurrentUser", user.getUsername());

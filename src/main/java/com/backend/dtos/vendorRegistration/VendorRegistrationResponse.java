@@ -9,7 +9,7 @@ import lombok.Setter;
 public class VendorRegistrationResponse {
     private String message;
 
-    public VendorRegistrationResponse(){}
+//    public VendorRegistrationResponse(){}
 
     public VendorRegistrationResponse(String message){
         this.message= message;

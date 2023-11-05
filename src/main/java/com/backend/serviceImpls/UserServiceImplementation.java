@@ -9,20 +9,16 @@ import com.backend.models.User;
 import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
 import com.backend.services.UserService;
-import com.cloudinary.Cloudinary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class UserServiceImplementation implements UserService {
 
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
     private CloudinaryUploadServiceImplementation cloudinary;
 
