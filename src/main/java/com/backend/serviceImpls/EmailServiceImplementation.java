@@ -13,6 +13,7 @@ public class EmailServiceImplementation implements EmailService {
 
     @Autowired
     JavaMailSender javaMailSender;
+
     @Override
     public void sendEmail(String receiver, String subject, String body) {
         SimpleMailMessage mailMessage= new SimpleMailMessage();

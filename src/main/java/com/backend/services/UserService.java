@@ -6,8 +6,16 @@ import com.backend.models.User;
 
 public interface UserService {
 
-    public User registerUser(RegisterUserDto registerUserDto);
+    User registerUser(RegisterUserDto registerUserDto);
 
-    public User loginUser(LoginUserDto loginUserDto);
+    User loginUser(LoginUserDto loginUserDto);
+
+    User getUserByUsername(String username);
+
+    User getUserByUsernameOrEmail(String usernameOrEmail);
+
+
+
+
 
 }

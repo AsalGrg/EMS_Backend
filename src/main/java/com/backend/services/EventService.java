@@ -9,22 +9,24 @@ import com.backend.models.PromoCode;
 
 import java.util.List;
 
-public interface EventService{
+ public interface EventService{
 
-    public Event getEventById(int id);
+    Event getEventById(int id);
 
-    public List<Event> getEventByPlace(String place);
+    List<Event> getEventByPlace(String place);
 
-    public List<Event> getEventByType(String type);
+     List<Event> getEventByType(String type);
 
-    public List<Event> getAllEvents();
+     List<Event> getAllEvents();
 
-    public EventResponseDto addEvent(AddEventRequestDto addEventDto);
+     EventResponseDto addEvent(AddEventRequestDto addEventDto);
 
-    public EventResponseDto getEventByAccessToken(String accessToken, String username);
-
-    public PromoCode addPromocode(AddPromoCodeDto promoCodeDto);
+     EventResponseDto getEventByAccessToken(String accessToken, String username);
 
     //handler to get the eventAccessRequests
-    public List<EventAccessRequestsView> getEventAccessRequests(String username);
+     List<EventAccessRequestsView> getEventAccessRequests(String username);
+
+     void addEventVendorRequestAction(String username, String action, String eventName);
+
+     void makeEventAccessRequest(String username, String accessToken);
 }

@@ -3,8 +3,7 @@ package com.backend.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Time;
 import java.time.LocalDate;
@@ -13,6 +12,10 @@ import java.util.Set;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+
 @Entity
 @Table(name = "event")
 public class Event {
@@ -69,11 +72,11 @@ public class Event {
 
     @ManyToOne
     @JoinColumn(name = "event_organizer_id")
-    private User event_organizer;
+    private User eventOrganizer;
 
     @ManyToOne
     @JoinColumn(name = "event_vendor_id")
-    private User event_vendor;
+    private User eventVendor;
 
     @ManyToOne
     @JoinColumn(name = "event_type_id")
