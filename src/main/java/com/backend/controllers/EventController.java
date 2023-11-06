@@ -8,6 +8,7 @@ import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
 import com.backend.serviceImpls.EventServiceImplementation;
+import com.backend.serviceImpls.PromoCodeServiceImplementation;
 import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -27,12 +28,16 @@ public class EventController {
 
     private final EventServiceImplementation eventService;
 
+    private final PromoCodeServiceImplementation promoCodeService;
+
     private final HttpSession httpSession;
 
     @Autowired
-    public EventController(EventServiceImplementation eventService, HttpSession httpSession){
+    public EventController
+            (EventServiceImplementation eventService, HttpSession httpSession, PromoCodeServiceImplementation promoCodeService){
         this.eventService= eventService;
         this.httpSession= httpSession;
+        this.promoCodeService= promoCodeService;
     }
 
 
@@ -92,7 +97,8 @@ public class EventController {
     @PostMapping("/addPromoCode")
     public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto){
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
-        eventService.addPromocode(promoCodeDto);
+
+        promoCodeService.addPromocode(promoCodeDto);
 
         return new ResponseEntity<>("Promo code Added Successfully",HttpStatus.OK);
     }

@@ -20,7 +20,7 @@ public class UserServiceImplementation implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    private CloudinaryUploadServiceImplementation cloudinary;
+    private final CloudinaryUploadServiceImplementation cloudinary;
 
     @Autowired
     public UserServiceImplementation(UserRepository userRepository, RoleRepository roleRepository, CloudinaryUploadServiceImplementation cloudinary){
@@ -48,13 +48,13 @@ public class UserServiceImplementation implements UserService {
             Role savedRole= roleRepository.save(role);
             user.setUserRoles(List.of(savedRole));
         });
-        //encoding the password here and then storing it, to be continued..
+        //encoding the password here and then storing it, to be continued
         user.setPassword(registerUserDto.getPassword());
 
         //no events are there in the user at first
         user.setEvents(null);
 
-        this.userRepository.save(user);
+        userRepository.save(user);
 
         return user;
     }
@@ -66,8 +66,8 @@ public class UserServiceImplementation implements UserService {
     @Override
     public User registerUser(RegisterUserDto registerUserDto) {
 
-        boolean usernameExists= this.userRepository.existsByUsername(registerUserDto.getUsername());
-        boolean emailExists= this.userRepository.existsByEmail(registerUserDto.getEmail());
+        boolean usernameExists= userRepository.existsByUsername(registerUserDto.getUsername());
+        boolean emailExists= userRepository.existsByEmail(registerUserDto.getEmail());
 
         if(usernameExists){
             throw new ResourceAlreadyExistsException("Username already exists");
@@ -79,7 +79,7 @@ public class UserServiceImplementation implements UserService {
         String userDpUrl= null;
 
         if (registerUserDto.getUserDp()!=null){
-            userDpUrl= this.cloudinary.uploadImage(registerUserDto.getUserDp(), "User Dps");
+            userDpUrl= cloudinary.uploadImage(registerUserDto.getUserDp(), "User Dps");
         }
 
         User user= new User();
@@ -101,13 +101,13 @@ public class UserServiceImplementation implements UserService {
             Role savedRole= roleRepository.save(role);
             user.setUserRoles(List.of(savedRole));
     });
-        //encoding the password here and then storing it, to be continued..
+        //encoding the password here and then storing it, to be continued
         user.setPassword(registerUserDto.getPassword());
 
         //no events are there in the user at first
         user.setEvents(null);
 
-        this.userRepository.save(user);
+        saveUser(user);
 
         return user;
     }
@@ -115,8 +115,22 @@ public class UserServiceImplementation implements UserService {
     @Override
     public User loginUser(LoginUserDto loginUserDto){
 
-       User user = this.userRepository.findByEmailAndPassword(loginUserDto.getEmail(), loginUserDto.getPassword())
+       return userRepository.findByEmailAndPassword(loginUserDto.getEmail(), loginUserDto.getPassword())
                 .orElseThrow(()-> new ResourceNotFoundException("User with the given credentials does not exist!"));
-        return user;
+    }
+
+    @Override
+    public User getUserByUsername(String username){
+        return userRepository.findByUsername(username)
+                .orElseThrow(()-> new ResourceNotFoundException(username + "not found"));
+    }
+
+    public User getUserByUsernameOrEmail(String usernameOrEmail){
+        return userRepository.findByEmailOrUsername(usernameOrEmail, usernameOrEmail).
+                orElseThrow(()-> new ResourceNotFoundException("Invalid username or email"));
+    }
+
+    public User saveUser(User user){
+        return userRepository.save(user);
     }
 }

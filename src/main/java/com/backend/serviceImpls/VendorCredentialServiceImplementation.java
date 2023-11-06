@@ -12,7 +12,6 @@ import com.backend.models.Role;
 import com.backend.models.User;
 import com.backend.models.VendorCredential;
 import com.backend.repositories.RoleRepository;
-import com.backend.repositories.UserRepository;
 import com.backend.repositories.VendorCredentialsRepository;
 import com.backend.services.VendorCredentialService;
 import com.backend.utils.EmailMessages;
@@ -28,7 +27,8 @@ import java.util.Map;
 public class VendorCredentialServiceImplementation implements VendorCredentialService {
 
     private final VendorCredentialsRepository vendorCredentialsRepo;
-    private final UserRepository userRepository;
+
+    private final UserServiceImplementation userService;
 
     private final RoleRepository roleRepository;
 
@@ -38,10 +38,10 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     private final EmailMessages emailMessages;
 
     public VendorCredentialServiceImplementation
-            (VendorCredentialsRepository vendorCredentialsRepository, UserRepository userRepository, RoleRepository roleRepository,
+            (VendorCredentialsRepository vendorCredentialsRepository, UserServiceImplementation userService, RoleRepository roleRepository,
              CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl, EmailServiceImplementation emailServiceImplementation, EmailMessages emailMessages){
-        this.vendorCredentialsRepo= vendorCredentialsRepository;
-        this.userRepository= userRepository;
+        vendorCredentialsRepo= vendorCredentialsRepository;
+        this.userService= userService;
         this.roleRepository= roleRepository;
         this.cloudinaryUploadServiceImpl= cloudinaryUploadServiceImpl;
         this.emailServiceImplementation =emailServiceImplementation;
@@ -65,9 +65,17 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
        return vendorDetailViewDto;
     }
 
+    @Override
+    public VendorCredential findVendorCredentialByVendorName(User user){
+        return vendorCredentialsRepo.findByUser(user)
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid vendor"));
+    }
+
+
     //service Method for getting all the vendors
+    @Override
     public List<VendorDetailViewDto> getAllVendors(){
-        List<VendorCredential> allVendors= this.vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(true, false).get();
+        List<VendorCredential> allVendors= vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(true, false);
 
         if(allVendors.isEmpty()){
             throw new ResourceNotFoundException("No vendors at the moment!");
@@ -80,6 +88,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
         return allVendorsView;
     }
+
     //method for checking the user credentials
     public User checkUserCredentials(String username, String role){
 
@@ -87,8 +96,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
             throw new NotAuthorizedException();
         }
 
-        User user = this.userRepository.findByUsername(username).
-                orElseThrow(()-> new ResourceNotFoundException("Invalid user"));
+        User user = userService.getUserByUsername(username);
 
         for(Role eachRole: user.getUserRoles()){
             if(eachRole.getTitle().equals(role)){
@@ -104,14 +112,14 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     @Override
     public VendorRegistrationResponse becomeVendor(VendorRegistrationRequestDto vendorRegistrationReq) {
 
-        if (this.vendorCredentialsRepo.existsByUser_Username(vendorRegistrationReq.getUsername())) {
+        if (vendorCredentialsRepo.existsByUser_Username(vendorRegistrationReq.getUsername())) {
             throw new ResourceAlreadyExistsException("Your request has been collected already");
         }
 
         //saving the files of the vendors in the cloudinary as
-        String taxClearanceCertificateUrl =  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate(), "Vendor Documents");
-        String vendorRegistrationDocumentUrl =  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationDocument(), "Vendor Documents");
-        String vendorRegistrationFilledFormUrl =  this.cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationFilledForm(), "Vendor Documents");
+        String taxClearanceCertificateUrl =  cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate(), "Vendor Documents");
+        String vendorRegistrationDocumentUrl =  cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationDocument(), "Vendor Documents");
+        String vendorRegistrationFilledFormUrl =  cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationFilledForm(), "Vendor Documents");
 
         User user= checkUserCredentials(vendorRegistrationReq.getUsername(), "USER");
 
@@ -146,7 +154,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
             vendorCredential.setContactNumber2(vendorContacts.get(1));
         }
 
-        VendorCredential savedCredentials= this.vendorCredentialsRepo.save(vendorCredential);
+        VendorCredential savedCredentials= vendorCredentialsRepo.save(vendorCredential);
 
         if(savedCredentials.getCredential_id()!=null) return new VendorRegistrationResponse("Your request has been collected. We will get back to you soon!");
 
@@ -157,9 +165,9 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     @Override
     public List<VendorRequestsDto> getVendorRequests(String username) {
 
-        User user= checkUserCredentials(username, "ADMIN");
+        checkUserCredentials(username, "ADMIN");
 
-        List<VendorCredential> vendorRequests= this.vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(false, false).get();
+        List<VendorCredential> vendorRequests= vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(false, false);
 
         if(vendorRequests.isEmpty()){
             throw new ResourceNotFoundException("No requests at the moment");
@@ -169,7 +177,6 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
         for(VendorCredential vendorCredential: vendorRequests){
             VendorRequestsDto vendorRequestsDto = getVendorRequestsDto(vendorCredential);
-
             vendorRequestsView.add(vendorRequestsDto);
         }
 
@@ -178,25 +185,27 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
 
     private static VendorRequestsDto getVendorRequestsDto(VendorCredential vendorCredential) {
-        VendorRequestsDto vendorRequestsDto= new VendorRequestsDto();
-        vendorRequestsDto.setVendorName(vendorCredential.getUser().getUsername());
-        vendorRequestsDto.setBusinessEmail(vendorCredential.getBusinessEmail());
-        vendorRequestsDto.setVendorDescription(vendorCredential.getVendorDescription());
-        vendorRequestsDto.setAddress(vendorCredential.getUser().getAddress());
-
-        vendorRequestsDto.setVendorRegistrationDocument(vendorCredential.getVendorRegistrationDocument());
-        vendorRequestsDto.setTaxClearanceCertificate(vendorCredential.getTaxClearanceCertificate());
-        vendorRequestsDto.setVendorRegistrationFilledForm(vendorCredential.getVendorRegistrationFilledForm());
-        return vendorRequestsDto;
+        return VendorRequestsDto
+                .builder()
+                .vendorName(vendorCredential.getUser().getUsername())
+                .businessEmail(vendorCredential.getBusinessEmail())
+                .vendorDescription(vendorCredential.getVendorDescription())
+                .address(vendorCredential.getUser().getAddress())
+                .vendorRegistrationDocument(vendorCredential.getVendorRegistrationDocument())
+                .taxClearanceCertificate(vendorCredential.getTaxClearanceCertificate())
+                .vendorRegistrationFilledForm(vendorCredential.getVendorRegistrationFilledForm())
+                .build();
     }
 
 
     //to get the vendors that are terminated
+
+    @Override
     public List<VendorRequestsDto> getTerminatedVendors(String username){
 
         checkUserCredentials(username, "ADMIN");
 
-        List<VendorCredential> terminatedVendorCredentials = this.vendorCredentialsRepo.findByIsTerminated(true).get();
+        List<VendorCredential> terminatedVendorCredentials = vendorCredentialsRepo.findByIsTerminated(true);
 
         if(terminatedVendorCredentials.isEmpty()) {
             throw new ResourceNotFoundException("No vendors to shows at the moment");
@@ -219,7 +228,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     public void vendorRequestAction(String username, String vendorName,String action) {
         checkUserCredentials(username,"ADMIN");
 
-        VendorCredential  vendorCredential= this.vendorCredentialsRepo.findByUser(this.userRepository.findByUsername(vendorName).orElseThrow(()->new ResourceNotFoundException("Username does not exist")))
+        VendorCredential  vendorCredential= vendorCredentialsRepo.findByUser(userService.getUserByUsername(vendorName))
                 .orElseThrow(()->new ResourceNotFoundException("Invalid vendor name"));
 
         switch (action) {
@@ -227,38 +236,40 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
                 vendorCredential.setVerified(true);
                 List<Role> userRoles= vendorCredential.getUser().getUserRoles();
 
-                this.roleRepository.findByTitle("VENDOR").ifPresentOrElse(role -> userRoles.add(role), ()->{
-                    Role role= new Role();
-                    role.setTitle("VENDOR");
-                    role.setDescription("Event Vendor");
+                roleRepository.findByTitle("VENDOR").ifPresentOrElse(userRoles::add, ()->{
+                    Role role= Role
+                            .builder()
+                            .title("VENDOR")
+                            .description("Event Vendor")
+                            .build();
 
-                    this.roleRepository.save(role);
+                    roleRepository.save(role);
 
-                    User vendorCredentials = userRepository.findByUsername(vendorName).get();
+                    User vendorCredentials = userService.getUserByUsername(vendorName);
                     vendorCredentials.setUserRoles(userRoles);
 
-                    this.userRepository.save(vendorCredentials);
+                    userService.saveUser(vendorCredentials);
                 });
 
                 //after the vendor is approved sending email to the vendor
-                Map<String, String> vendorAcceptanceMessageAndSubject = this.emailMessages.vendorAcceptanceMessage(vendorCredential.getUser().getUsername());
+                Map<String, String> vendorAcceptanceMessageAndSubject = emailMessages.vendorAcceptanceMessage(vendorCredential.getUser().getUsername());
                 String subject= vendorAcceptanceMessageAndSubject.get("subject");
                 String body= vendorAcceptanceMessageAndSubject.get("message");
 
                 //for now making the reciever me, to check only. Should pass the vendor email instead
-                this.emailServiceImplementation.sendEmail("asal.gurung.a21.2@icp.edu.np", subject, body);
+                emailServiceImplementation.sendEmail("asal.gurung.a21.2@icp.edu.np", subject, body);
             }
 
             case "decline" -> {
                 vendorCredential.setDeclined(true);
 
                 //after the vendor is declined, sending email to the vendor
-                Map<String, String> vendorAcceptanceMessageAndSubject = this.emailMessages.vendorDeclinedMessage(vendorCredential.getUser().getUsername());
+                Map<String, String> vendorAcceptanceMessageAndSubject = emailMessages.vendorDeclinedMessage(vendorCredential.getUser().getUsername());
                 String subject= vendorAcceptanceMessageAndSubject.get("subject");
                 String body= vendorAcceptanceMessageAndSubject.get("message");
 
                 //for now making the reciever me, to check only. Should pass the vendor email instead
-                this.emailServiceImplementation.sendEmail("asal.gurung.a21.2@icp.edu.np", subject, body);
+                emailServiceImplementation.sendEmail("asal.gurung.a21.2@icp.edu.np", subject, body);
             }
 
             //this conditions for further vendor actions such as terminating them etc.
@@ -268,6 +279,6 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
             default -> throw new InternalServerError("Invalid vendor action");
         }
 
-        this.vendorCredentialsRepo.save(vendorCredential);
+        vendorCredentialsRepo.save(vendorCredential);
     }
 }

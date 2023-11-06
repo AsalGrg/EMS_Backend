@@ -10,10 +10,7 @@ import com.backend.models.Event;
 import com.backend.models.PromoCode;
 import com.backend.models.TicketPayment;
 import com.backend.models.User;
-import com.backend.repositories.EventRepository;
-import com.backend.repositories.PromocodeRepository;
 import com.backend.repositories.TicketPaymentRepository;
-import com.backend.repositories.UserRepository;
 import com.backend.services.TicketPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,16 +20,19 @@ import org.springframework.stereotype.Service;
 public class TicketPaymentServiceImplementation implements TicketPaymentService {
 
     private final TicketPaymentRepository ticketPaymentRepository;
-    private final EventRepository eventRepository;
-    private final UserRepository userRepository;
-    private final PromocodeRepository promocodeRepository;
+    private final EventServiceImplementation eventService;
+    private final UserServiceImplementation userService;
+    private final PromoCodeServiceImplementation promocodeService;
 
     @Autowired
-    public TicketPaymentServiceImplementation(TicketPaymentRepository ticketPaymentRepository, EventRepository eventRepository, PromocodeRepository promocodeRepository, UserRepository userRepository){
+    public TicketPaymentServiceImplementation
+            (TicketPaymentRepository ticketPaymentRepository, EventServiceImplementation eventService,
+             PromoCodeServiceImplementation promocodeService, UserServiceImplementation userService){
+
         this.ticketPaymentRepository= ticketPaymentRepository;
-        this.eventRepository= eventRepository;
-        this.promocodeRepository= promocodeRepository;
-        this.userRepository= userRepository;
+        this.eventService= eventService;
+        this.promocodeService= promocodeService;
+        this.userService= userService;
     }
 
     @Override
@@ -47,13 +47,9 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
             throw new NotAuthorizedException();
         }
 
-        User userDetails = this.userRepository.findByUsername(paymentRequestDto.getUsername()).orElseThrow(()-> new ResourceNotFoundException("Invalid user"));
+        User userDetails = userService.getUserByUsername(paymentRequestDto.getUsername());
 
-
-        Event eventDetails= this.eventRepository.findEventByName(paymentRequestDto.getEvent_name()).
-                orElseThrow(()->
-                    new ResourceNotFoundException("Event with title "+paymentRequestDto.getEvent_name()+ " does not exist")
-                );
+        Event eventDetails= eventService.getEventByName(paymentRequestDto.getEvent_name());
 
         //checking if the event seats are available
         if(eventDetails.getSeats()==0){
@@ -66,8 +62,7 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
 
         //if promo code used
         if(paymentRequestDto.getPromoCode()!=null){
-            PromoCode promoCode= this.promocodeRepository.findByName(paymentRequestDto.getPromoCode())
-                    .orElseThrow(()->new ResourceNotFoundException("Invalid promo code: "+ paymentRequestDto.getPromoCode()));
+            PromoCode promoCode= promocodeService.getPromoCodeByTitle(paymentRequestDto.getPromoCode());
 
             //checking if the promocode is applicable for the given event or not;
             if(!promoCode.getEvent().getName().equals(paymentRequestDto.getPromoCode())){
@@ -117,7 +112,7 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
         //after the payment is done, the event detials such as available seats and ticketsSold are updated here
         eventDetails.setSeats(eventDetails.getSeats()-paymentRequestDto.getQuantity());
         eventDetails.setTicketSold(eventDetails.getTicketSold()+paymentRequestDto.getQuantity());
-        this.eventRepository.save(eventDetails);
+        eventService.saveEvent(eventDetails);
 
 
         return paymentResponseDto;

@@ -11,7 +11,7 @@ public interface VendorCredentialsRepository extends JpaRepository<VendorCredent
 
     boolean existsByUser_Username(String username);
     Optional<VendorCredential> findByUser(User user);
-    Optional<List<VendorCredential>> findByIsVerifiedAndIsDeclined(boolean isVerified, boolean isDeclined);
+    List<VendorCredential> findByIsVerifiedAndIsDeclined(boolean isVerified, boolean isDeclined);
 
-    Optional<List<VendorCredential>> findByIsTerminated(boolean isTerminated);
+    List<VendorCredential> findByIsTerminated(boolean isTerminated);
 }
