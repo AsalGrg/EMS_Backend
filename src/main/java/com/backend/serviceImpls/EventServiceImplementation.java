@@ -70,11 +70,13 @@ public class EventServiceImplementation implements EventService {
         return event;
     }
 
+    @Override
     public Event getEventByName(String name){
         return eventRepository.findEventByName(name)
                 .orElseThrow(()-> new ResourceNotFoundException("Invalid event name '"+name+"'"));
     }
 
+    @Override
     public void saveEvent(Event event){
         eventRepository.save(event);
     }
@@ -102,8 +104,13 @@ public class EventServiceImplementation implements EventService {
         if(events.isEmpty()){
             throw new ResourceNotFoundException("Currently no available events");
         }
-
         return events;
+    }
+
+    @Override
+    public Event getEventByAccessToken(String token){
+        return eventRepository.findByAccessToken(token)
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid access token!"));
     }
 
     //service method to get all the events from the filter such as time, date and place and venue
@@ -155,12 +162,11 @@ public class EventServiceImplementation implements EventService {
             throw new ResourceAlreadyExistsException("Event name already exists");
         }
 
-        VendorCredential vendorCredential= vendorCredentialsService.findVendorCredentialByVendorName(userService.getUserByUsername(addEventDto.getEvent_vendor()));
+        VendorCredential vendorCredential= vendorCredentialsService.findVendorCredentialByUser(userService.getUserByUsername(addEventDto.getEvent_vendor()));
 
         if(vendorCredential.isDeclined() && !vendorCredential.isVerified() && vendorCredential.isTerminated()){
             throw new ResourceNotFoundException("Invalid vendor name");
         }
-
 
         if(addEventDto.getPromoCodes()!=null){
 
@@ -171,29 +177,14 @@ public class EventServiceImplementation implements EventService {
             }
         }
 
-        //setting the event details from the dto to the event object
-        Event event= new Event();
-        event.setName(addEventDto.getName());
-        event.setLocation(addEventDto.getLocation());
-        event.setPublished_date(addEventDto.getPublished_date());
-        event.setEventDate(addEventDto.getEvent_date());
-        event.setDescription(addEventDto.getDescription());
-        event.setPrivate(addEventDto.isPrivate());
-        event.setEntryFee(addEventDto.getEntryFee());
-        event.setSeats(addEventDto.getSeats());
-        event.setEventOrganizer(userService.getUserByUsername(addEventDto.getEvent_organizer()));
-
-        //setting the event isAccepted and isDeclined to false at first, which needs to be either true false after the event vendor response.
-        event.setAccepted(false);
-        event.setDeclined(false);
+        String accessToken = null;
+        Set<User> usersInvited= new HashSet<>();
 
         //checking if the event is private
         if(addEventDto.isPrivate()){
 
             //generating random access token for the event
-            String accessToken = UUID.randomUUID().toString();
-            event.setAccessToken(accessToken);
-
+            accessToken = UUID.randomUUID().toString();
 
             //checking if the user group is empty or not
             if(addEventDto.getEvent_group()!=null){
@@ -206,8 +197,6 @@ public class EventServiceImplementation implements EventService {
 
                 System.out.println(user_groups);
 
-                Set<User> usersInvited= new HashSet<>();
-
                 for(String usernameOrEmail: user_groups){
 
                     //checking each username provided in the user group set and if exists in the database
@@ -216,30 +205,45 @@ public class EventServiceImplementation implements EventService {
                     //adding the user details in the list
                     usersInvited.add(user);
                 }
-                //adding the list of the user group in the event object
-                event.setEvent_group(usersInvited);
             }
         }
 
+        String coverImageUrl= null;
         if(addEventDto.getEventCoverPhoto()!=null){
-            String imageUrl = cloudinaryUploadServiceImpl.uploadImage(addEventDto.getEventCoverPhoto(), "Event Photos");
-            event.setEventCoverImage(imageUrl);
+            coverImageUrl = cloudinaryUploadServiceImpl.uploadImage(addEventDto.getEventCoverPhoto(), "Event Photos");
         }
 
 
-        //other entities such as event group are to be set
-        event.setEventType(eventTypeService.getEventTypeByTitle(addEventDto.getEventType()));
+        Event event= Event.builder()
+                .name(addEventDto.getName())
+                .location(addEventDto.getLocation())
+                .published_date(addEventDto.getPublished_date())
+                .eventDate(addEventDto.getEvent_date())
+                .eventType(eventTypeService.getEventTypeByTitle(addEventDto.getEventType()))
+                .description(addEventDto.getDescription())
+                .isPrivate(addEventDto.isPrivate())
+                .entryFee(addEventDto.getEntryFee())
+                .seats(addEventDto.getSeats())
+                .eventOrganizer(userService.getUserByUsername(addEventDto.getEvent_organizer()))
+                .isAccepted(false)
+                .isDeclined(false)
+                .accessToken(accessToken)
+                .event_group(usersInvited)
+                .eventCoverImage(coverImageUrl)
+                .build();
 
         //adding the event in the database
-        eventRepository.save(event);
+        saveEvent(event);
 
         if(addEventDto.getPromoCodes()!=null) {
 
             for(PromoCode promoCode: addEventDto.getPromoCodes()) {
-                PromoCode savePromoCode = new PromoCode();
-                savePromoCode.setName(promoCode.getName());
-                savePromoCode.setDiscount_amount(promoCode.getDiscount_amount());
-                savePromoCode.setEvent(event);
+                PromoCode savePromoCode = PromoCode
+                        .builder()
+                        .name(promoCode.getName())
+                        .discount_amount(promoCode.getDiscount_amount())
+                        .event(event)
+                        .build();
 
                 promoCodeService.savePromoCode(savePromoCode);
             }
@@ -247,6 +251,10 @@ public class EventServiceImplementation implements EventService {
         }
 
         return changeToEventDto(event);
+    }
+
+    public void addPromoCode(AddPromoCodeDto promoCodeDto){
+        promoCodeService.addPromocode(promoCodeDto, getEventByName(promoCodeDto.getName()));
     }
 
     //method for vendor to accept the addEvent requests from the client i.e. event hoster
@@ -267,22 +275,19 @@ public class EventServiceImplementation implements EventService {
 
         switch (action){
 
-            case "accept" -> {
-                eventDetails.setAccepted(true);
-                eventRepository.save(eventDetails);
-            }
+            case "accept" -> eventDetails.setAccepted(true);
 
-            case "reject" ->{
-                eventDetails.setDeclined(true);
-                eventRepository.save(eventDetails);
-            }
+            case "reject" -> eventDetails.setDeclined(true);
+
+            default -> throw new IllegalStateException("Invalid action");
         }
 
+        saveEvent(eventDetails);
 
     }
 
     @Override
-    public EventResponseDto getEventByAccessToken(String accessToken, String username) {
+    public EventResponseDto enterEventByAccessToken(String accessToken, String username) {
         if(username==null){
             throw new NotAuthorizedException();
         }
@@ -310,16 +315,18 @@ public class EventServiceImplementation implements EventService {
 
         EventAccessRequest existingRequest = eventAccessRequestService.findRequestByUserAndEvent(
                 userService.getUserByUsername(username),
-                eventRepository.findByAccessToken(accessToken).get()
+                getEventByAccessToken(accessToken)
         );
 
         if(existingRequest!=null){
             throw new ResourceAlreadyExistsException("Request has already been collected");
         }
 
-        existingRequest= new EventAccessRequest();
-        existingRequest.setUser(userService.getUserByUsername(username));
-        existingRequest.setEvent(eventRepository.findByAccessToken(accessToken).get());
+        existingRequest= EventAccessRequest
+                .builder()
+                .user(userService.getUserByUsername(username))
+                .event(getEventByAccessToken(accessToken))
+                .build();
 
         eventAccessRequestService.saveEventAccessRequest(existingRequest);
 

@@ -19,9 +19,15 @@ import java.util.List;
 
      List<Event> getAllEvents();
 
+     Event getEventByName(String name);
+
+     void saveEvent(Event event);
+
      EventResponseDto addEvent(AddEventRequestDto addEventDto);
 
-     EventResponseDto getEventByAccessToken(String accessToken, String username);
+     Event getEventByAccessToken(String accessToken);
+
+     EventResponseDto enterEventByAccessToken(String accessToken, String username);
 
     //handler to get the eventAccessRequests
      List<EventAccessRequestsView> getEventAccessRequests(String username);
