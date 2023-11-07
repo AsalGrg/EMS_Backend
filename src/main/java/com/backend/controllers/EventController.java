@@ -13,6 +13,7 @@ import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +35,7 @@ public class EventController {
 
     @Autowired
     public EventController
-            (EventServiceImplementation eventService, HttpSession httpSession, PromoCodeServiceImplementation promoCodeService){
+            (EventServiceImplementation eventService, HttpSession httpSession, @Lazy  PromoCodeServiceImplementation promoCodeService){
         this.eventService= eventService;
         this.httpSession= httpSession;
         this.promoCodeService= promoCodeService;
@@ -78,7 +79,7 @@ public class EventController {
 
     @PostMapping("/private/{accessToken}")
     public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken){
-        EventResponseDto eventDetails = eventService.getEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));
+        EventResponseDto eventDetails = eventService.enterEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));
 
         return new ResponseEntity<>(eventDetails, HttpStatus.OK);
     }
@@ -98,7 +99,7 @@ public class EventController {
     public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto){
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
 
-        promoCodeService.addPromocode(promoCodeDto);
+        eventService.addPromoCode(promoCodeDto);
 
         return new ResponseEntity<>("Promo code Added Successfully",HttpStatus.OK);
     }

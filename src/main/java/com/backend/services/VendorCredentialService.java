@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface VendorCredentialService {
 
-    VendorCredential findVendorCredentialByVendorName(User user);
+    VendorCredential findVendorCredentialByUser(User user);
 
     List<VendorDetailViewDto> getAllVendors();
 

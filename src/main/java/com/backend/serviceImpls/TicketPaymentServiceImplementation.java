@@ -38,11 +38,6 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
     @Override
     public PaymentResponseDto makePayment(PaymentRequestDto paymentRequestDto){
 
-        //object of the ticketPayment that to be saved in database
-        TicketPayment ticketPayment= new TicketPayment();
-
-        PaymentResponseDto paymentResponseDto= new PaymentResponseDto();
-
         if(paymentRequestDto.getUsername()==null){
             throw new NotAuthorizedException();
         }
@@ -60,48 +55,60 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
         double grand_total;
         double savedAmount;
 
+
         //if promo code used
+
+        PromoCode promoCode= null;
+        String promoCodeTitle= null;
+        boolean promoCodeUsed= false;
+
         if(paymentRequestDto.getPromoCode()!=null){
-            PromoCode promoCode= promocodeService.getPromoCodeByTitle(paymentRequestDto.getPromoCode());
+
+            promoCode= promocodeService.getPromoCodeByTitle(paymentRequestDto.getPromoCode());
 
             //checking if the promocode is applicable for the given event or not;
             if(!promoCode.getEvent().getName().equals(paymentRequestDto.getPromoCode())){
                 throw new ResourceNotFoundException("No promo code with title "+ paymentRequestDto.getPromoCode()+ " for event title "+ paymentRequestDto.getEvent_name());
             }
 
+            promoCodeUsed= true;
+
             grand_total= net_total - promoCode.getDiscount_amount()*paymentRequestDto.getQuantity();
 
-            //setting promo code related attributes of ticket payment
-            ticketPayment.setPromocodeUsed(true);
-            ticketPayment.setPromoCode(promoCode);
-
-            paymentResponseDto.setPromoCode(promoCode.getName());
+            promoCodeTitle= promoCode.getName();
         }
 
         //if promo code not used
-        else{
-            grand_total= net_total;
-        }
+        grand_total= net_total;
 
         savedAmount= net_total-grand_total;
 
         if(grand_total != paymentRequestDto.getTotal_amount()) throw new PaymentException("Insufficient payment amount");
 
-        ticketPayment.setQuantity(paymentRequestDto.getQuantity());
-        ticketPayment.setNet_total(net_total);
-        ticketPayment.setGrand_total(grand_total);
-        ticketPayment.setEvent(eventDetails);
-        ticketPayment.setUser(userDetails);
 
-        //setting attribute value for payment response
-        paymentResponseDto.setUsername(paymentRequestDto.getUsername());
-        paymentResponseDto.setEvent_name(paymentRequestDto.getEvent_name());
-        paymentResponseDto.setUnit_price(eventDetails.getEntryFee());
-        paymentResponseDto.setQuantity(paymentRequestDto.getQuantity());
-        paymentResponseDto.setNet_total(net_total);
-        paymentResponseDto.setGrand_total(grand_total);
-        paymentResponseDto.setAmount_saved(savedAmount);
+        TicketPayment ticketPayment= TicketPayment.builder()
+                .promocodeUsed(promoCodeUsed)
+                .promoCode(promoCode)
+                .quantity(paymentRequestDto.getQuantity())
+                .net_total(net_total)
+                .grand_total(grand_total)
+                .event(eventDetails)
+                .user(userDetails)
+                .build();
 
+
+
+        PaymentResponseDto paymentResponseDto=PaymentResponseDto
+                .builder()
+                .username(paymentRequestDto.getUsername())
+                .event_name(paymentRequestDto.getEvent_name())
+                .unit_price(eventDetails.getEntryFee())
+                .quantity(paymentRequestDto.getQuantity())
+                .net_total(net_total)
+                .promoCode(promoCodeTitle)
+                .grand_total(grand_total)
+                .amount_saved(savedAmount)
+                .build();
 
         TicketPayment ticketPaymentSaved= this.ticketPaymentRepository.save(ticketPayment);
 
@@ -112,8 +119,8 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
         //after the payment is done, the event detials such as available seats and ticketsSold are updated here
         eventDetails.setSeats(eventDetails.getSeats()-paymentRequestDto.getQuantity());
         eventDetails.setTicketSold(eventDetails.getTicketSold()+paymentRequestDto.getQuantity());
-        eventService.saveEvent(eventDetails);
 
+        eventService.saveEvent(eventDetails);
 
         return paymentResponseDto;
     }

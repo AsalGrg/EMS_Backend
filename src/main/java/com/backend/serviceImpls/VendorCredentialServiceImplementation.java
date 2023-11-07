@@ -50,23 +50,22 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
     VendorDetailViewDto changeToVendorViewDto(VendorCredential vendorCredential){
 
-       VendorDetailViewDto vendorDetailViewDto=  new VendorDetailViewDto();
-       vendorDetailViewDto.setVendorName(vendorCredential.getUser().getUsername());
-       vendorDetailViewDto.setVendorDescription(vendorCredential.getVendorDescription());
-       vendorDetailViewDto.setFacebookLink(vendorCredential.getFacebookLink());
-       vendorDetailViewDto.setInstagramLink(vendorCredential.getInstagramLink());
-       vendorDetailViewDto.setTiktokLink(vendorCredential.getTiktokLink());
-       vendorDetailViewDto.setLinkedInLink(vendorCredential.getLinkedinLink());
-       vendorDetailViewDto.setRatings(vendorCredential.getRating());
-       vendorDetailViewDto.setBusinessEmail(vendorCredential.getBusinessEmail());
-       vendorDetailViewDto.setContactNumber1(vendorCredential.getContactNumber1());
-       vendorDetailViewDto.setContactNumber2(vendorCredential.getContactNumber2());
-
-       return vendorDetailViewDto;
+       return   VendorDetailViewDto
+               .builder()
+               .vendorName(vendorCredential.getUser().getUsername())
+               .facebookLink(vendorCredential.getFacebookLink())
+               .instagramLink(vendorCredential.getInstagramLink())
+               .tiktokLink(vendorCredential.getTiktokLink())
+               .linkedInLink(vendorCredential.getLinkedinLink())
+               .ratings(vendorCredential.getRating())
+               .businessEmail(vendorCredential.getBusinessEmail())
+               .contactNumber1(vendorCredential.getContactNumber1())
+               .contactNumber2(vendorCredential.getContactNumber2())
+               .build();
     }
 
     @Override
-    public VendorCredential findVendorCredentialByVendorName(User user){
+    public VendorCredential findVendorCredentialByUser(User user){
         return vendorCredentialsRepo.findByUser(user)
                 .orElseThrow(()-> new ResourceNotFoundException("Invalid vendor"));
     }
@@ -87,6 +86,10 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
         }
 
         return allVendorsView;
+    }
+
+    public VendorCredential saveVendorCredentials(VendorCredential vendorCredential){
+        return vendorCredentialsRepo.save(vendorCredential);
     }
 
     //method for checking the user credentials
@@ -123,36 +126,48 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
         User user= checkUserCredentials(vendorRegistrationReq.getUsername(), "USER");
 
-        VendorCredential vendorCredential= new VendorCredential();
-        vendorCredential.setUser(user);
-
-        //setting the urls where the documents are stored
-        vendorCredential.setTaxClearanceCertificate(taxClearanceCertificateUrl);
-        vendorCredential.setVendorRegistrationDocument(vendorRegistrationDocumentUrl);
-        vendorCredential.setVendorRegistrationFilledForm(vendorRegistrationFilledFormUrl);
-        //other vendor related setting to be done ... to be continued
-
-        vendorCredential.setBusinessEmail(vendorRegistrationReq.getBusinessEmail());
-        vendorCredential.setVendorDescription(vendorRegistrationReq.getVendorDescription());
 
 
         //setting the social media fields of the vendor
+        String facebookLink= null;
+        String instagramLink= null;
+        String tiktokLink= null;
+        String linkedInLink= null;
+
         List<String> vendorSocialMediaLinks= vendorRegistrationReq.getSocialMediaLinks();
         for(int i=0;i<1; i++){
             //in list first: facebook, second: instgram, third: tiktok, last: linkedIn
-            vendorCredential.setFacebookLink(vendorSocialMediaLinks.get(0));
-            vendorCredential.setInstagramLink(vendorSocialMediaLinks.get(1));
-            vendorCredential.setTiktokLink(vendorSocialMediaLinks.get(2));
-            vendorCredential.setLinkedinLink(vendorSocialMediaLinks.get(3));
+            facebookLink= vendorSocialMediaLinks.get(0);
+            instagramLink= vendorSocialMediaLinks.get(1);
+            tiktokLink= vendorSocialMediaLinks.get(2);
+            linkedInLink = vendorSocialMediaLinks.get(3);
         }
 
         //setting the contacts fields of the vendor
+        String contactNumber1= null;
+        String contactNumber2= null;
         List<String> vendorContacts = vendorRegistrationReq.getSocialMediaLinks();
         for(int i=0;i<1; i++){
-            //in list first: facebook, second: instgram, third: tiktok, last: linkedIn
-            vendorCredential.setContactNumber1(vendorContacts.get(0));
-            vendorCredential.setContactNumber2(vendorContacts.get(1));
+            //in list first: facebook, second: instagram, third: TikTok, last: LinkedIn
+            contactNumber1= vendorContacts.get(0);
+            contactNumber2= vendorContacts.get(1);
         }
+
+        VendorCredential vendorCredential=VendorCredential
+                .builder()
+                .user(user)
+                .taxClearanceCertificate(taxClearanceCertificateUrl)
+                .vendorRegistrationDocument(vendorRegistrationDocumentUrl)
+                .vendorRegistrationFilledForm(vendorRegistrationFilledFormUrl)
+                .businessEmail(vendorRegistrationReq.getBusinessEmail())
+                .vendorDescription(vendorRegistrationReq.getVendorDescription())
+                .facebookLink(facebookLink)
+                .instagramLink(instagramLink)
+                .tiktokLink(tiktokLink)
+                .linkedinLink(linkedInLink)
+                .contactNumber1(contactNumber1)
+                .contactNumber2(contactNumber2)
+                .build();
 
         VendorCredential savedCredentials= vendorCredentialsRepo.save(vendorCredential);
 
@@ -228,8 +243,9 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     public void vendorRequestAction(String username, String vendorName,String action) {
         checkUserCredentials(username,"ADMIN");
 
-        VendorCredential  vendorCredential= vendorCredentialsRepo.findByUser(userService.getUserByUsername(vendorName))
-                .orElseThrow(()->new ResourceNotFoundException("Invalid vendor name"));
+        User user= userService.getUserByUsername(vendorName);
+
+        VendorCredential  vendorCredential= findVendorCredentialByUser(user);
 
         switch (action) {
             case "verify" -> {
@@ -242,14 +258,14 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
                             .title("VENDOR")
                             .description("Event Vendor")
                             .build();
-
-                    roleRepository.save(role);
-
-                    User vendorCredentials = userService.getUserByUsername(vendorName);
-                    vendorCredentials.setUserRoles(userRoles);
-
-                    userService.saveUser(vendorCredentials);
+                    //adding the v
+                    userRoles.add(roleRepository.save(role));
                 });
+
+                //updating the user's role adding vendor role too.
+                user.setUserRoles(userRoles);
+                userService.saveUser(user);
+
 
                 //after the vendor is approved sending email to the vendor
                 Map<String, String> vendorAcceptanceMessageAndSubject = emailMessages.vendorAcceptanceMessage(vendorCredential.getUser().getUsername());
@@ -279,6 +295,6 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
             default -> throw new InternalServerError("Invalid vendor action");
         }
 
-        vendorCredentialsRepo.save(vendorCredential);
+        saveVendorCredentials(vendorCredential);
     }
 }

@@ -14,12 +14,9 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
 
     private final PromocodeRepository promocodeRepository;
 
-    private final EventServiceImplementation eventService;
-
     PromoCodeServiceImplementation
-            (PromocodeRepository promocodeRepository, EventServiceImplementation eventService){
+            (PromocodeRepository promocodeRepository){
         this.promocodeRepository= promocodeRepository;
-        this.eventService= eventService;
     }
 
     @Override
@@ -38,10 +35,7 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
         return promocodeRepository.save(promoCode);
     }
 
-    public PromoCode addPromocode(AddPromoCodeDto promoCodeDto) {
-
-        Event event= eventService.getEventByName(promoCodeDto.getEvent_name());
-
+    public PromoCode addPromocode(AddPromoCodeDto promoCodeDto,Event event) {
         if(!event.getEventOrganizer().getUsername().equals(promoCodeDto.getUsername())){
             throw new NotAuthorizedException("You do not have privileges to add promo codes to the event");
         }
