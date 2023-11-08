@@ -115,11 +115,11 @@ public class EventServiceImplementation implements EventService {
 
     //service method to get all the events from the filter such as time, date and place and venue
     public List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto){
-        List<Event> filterEventsList = eventRepository.findByLocationAndEventTimeAndEventDateAndEventType_TitleAndIsAccepted(
+        List<Event> filterEventsList = eventRepository.findByLocationAndEventTimeAndEventDateAndEventTypeAndIsAccepted(
                 searchEventByFilterDto.getLocation(),
                 searchEventByFilterDto.getEvent_time(),
                 searchEventByFilterDto.getEvent_date(),
-                searchEventByFilterDto.getEvent_category(),
+                eventTypeService.getEventTypeByTitle(searchEventByFilterDto.getEvent_category()),
                 true
         );
 
