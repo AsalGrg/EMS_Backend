@@ -13,7 +13,7 @@ import java.lang.annotation.*;
 
 public @interface IsImage {
 
-    public String message() default "An image file is required";
+    String message() default "An image file is required";
 
     Class<?>[] groups() default {};
 

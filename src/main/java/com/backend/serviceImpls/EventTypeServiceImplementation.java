@@ -1,5 +1,6 @@
 package com.backend.serviceImpls;
 
+import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.EventType;
 import com.backend.repositories.EventTypeRepository;
 import com.backend.services.EventTypeService;
@@ -18,6 +19,7 @@ public class EventTypeServiceImplementation implements EventTypeService {
 
     @Override
     public EventType getEventTypeByTitle(String title) {
-        return eventTypeRepository.getEventTypeByTitle(title);
+        return eventTypeRepository.getEventTypeByTitle(title)
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid event type"));
     }
 }

@@ -1,6 +1,7 @@
 package com.backend.repositories;
 
 import com.backend.models.Event;
+import com.backend.models.EventType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Integer> {
 
-    List<Event> findByLocationAndEventTimeAndEventDateAndEventType_TitleAndIsAccepted(String location, Time eventTime, LocalDate eventDate, String eventTitle, boolean isAccepted);
+    List<Event> findByLocationAndEventTimeAndEventDateAndEventTypeAndIsAccepted(String location, Time eventTime, LocalDate eventDate, EventType eventType, boolean isAccepted);
     Optional<Event>  findEventByName(String name);
 
     Event findEventById(int id);

@@ -8,12 +8,10 @@ import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
 import com.backend.serviceImpls.EventServiceImplementation;
-import com.backend.serviceImpls.PromoCodeServiceImplementation;
 import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,16 +27,13 @@ public class EventController {
 
     private final EventServiceImplementation eventService;
 
-    private final PromoCodeServiceImplementation promoCodeService;
-
     private final HttpSession httpSession;
 
     @Autowired
     public EventController
-            (EventServiceImplementation eventService, HttpSession httpSession, @Lazy  PromoCodeServiceImplementation promoCodeService){
+            (EventServiceImplementation eventService, HttpSession httpSession){
         this.eventService= eventService;
         this.httpSession= httpSession;
-        this.promoCodeService= promoCodeService;
     }
 
 

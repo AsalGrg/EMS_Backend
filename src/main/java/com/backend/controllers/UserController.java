@@ -41,7 +41,8 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestPart("userDetails") @Valid RegisterUserDto registerUser,
-                                          @RequestPart(value = "userDp" , required = false) @IsImage MultipartFile userDp) {
+                                          //thinking of giving a default image, if not included.
+                                          @RequestPart(value = "userDp") @IsImage MultipartFile userDp) {
 
         registerUser.setUserDp(userDp);
 
@@ -81,4 +82,5 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
 
     }
+
 }
