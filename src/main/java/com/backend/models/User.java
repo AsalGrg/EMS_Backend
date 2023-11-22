@@ -43,7 +43,7 @@ public class User {
     private String address;
 
     @ManyToMany
-    @JoinTable(name = "user_roles" , joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "user_roles" , joinColumns = @JoinColumn(name = " "), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role>  userRoles;
 
     @ManyToMany(mappedBy = "event_group")
