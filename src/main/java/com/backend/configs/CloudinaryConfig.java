@@ -14,7 +14,7 @@ public class CloudinaryConfig {
     @Bean
     public Cloudinary cloudConfig(){
 
-        Map config = Map.of(
+        Map<String, String> config = Map.of(
                 "cloud_name", "dx6kf6pen",
                 "api_key", "956782961796959",
                 "api_secret", "yjSKAaNtIVL7fO6nYCT1mTjDrRk"
