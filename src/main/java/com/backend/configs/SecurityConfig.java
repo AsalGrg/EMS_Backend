@@ -41,30 +41,62 @@ public class SecurityConfig{
         this.passwordEncoder= passwordEncoder;
     }
 
+//
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity https) throws Exception {
+//
+//        https.
+//                csrf(AbstractHttpConfigurer::disable)
+//                .cors(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(
+//                        authHttpRequest-> authHttpRequest.requestMatchers("/register").permitAll()
+//                                .requestMatchers("/login").permitAll()
+////                                .requestMatchers("").authenticated()
+////                                .requestMatchers("").hasAnyAuthority("ADMIN")
+////                                .requestMatchers("").hasAnyRole("ADMIN")
+//                                .anyRequest().authenticated()
+//                )
+//                .sessionManagement(
+//                        session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                )
+//                .authenticationProvider(daoAuthenticationProvider())
+//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+//                .exceptionHandling(expHandling-> expHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+//
+//        return https.build();
+//    }
+//
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity https) throws Exception {
-
-        https.
-                csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        authHttpRequest-> authHttpRequest.requestMatchers("/register").permitAll()
-//                                .requestMatchers("").authenticated()
-//                                .requestMatchers("").hasAnyAuthority("ADMIN")
-//                                .requestMatchers("").hasAnyRole("ADMIN")
-                                .anyRequest().authenticated()
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(req ->
+                        req.requestMatchers("/register")
+                                .permitAll()
+                                .requestMatchers("/login").permitAll()
+                                .requestMatchers("/verify-otp").permitAll()
+                                .requestMatchers("/become-vendor-requests").permitAll()
+//                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
+//                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
+//                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
+//                                .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
+//                                .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(ADMIN_DELETE.name(), MANAGER_DELETE.name())
+                                .anyRequest()
+                                .authenticated()
                 )
-                .sessionManagement(
-                        session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(daoAuthenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(expHandling-> expHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+//                .logout(logout ->
+//                        logout.logoutUrl("/api/v1/auth/logout")
+//                                .addLogoutHandler(logoutHandler)
+//                                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
+//                )
+        ;
 
-        return https.build();
+        return http.build();
     }
-
-
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(){
         DaoAuthenticationProvider daoAuthenticationProvider= new DaoAuthenticationProvider();

@@ -1,15 +1,16 @@
 package com.backend.exceptions;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.CONFLICT)
+
 public class ResourceAlreadyExistsException extends RuntimeException{
 
-    String message;
+//    String message;
 
     public ResourceAlreadyExistsException(String message){
         super(message);
-        this.message= message;
+//        this.message= message;
     }
 }

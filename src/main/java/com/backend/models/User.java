@@ -47,6 +47,13 @@ public class User implements UserDetails {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "is_enabled")
+    private boolean isEnabled;
+
+    @Column(name = "is_verified")
+    private boolean isVerified;
+
+
     @ManyToMany
     @JoinTable(name = "user_roles" , joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role>  userRoles;

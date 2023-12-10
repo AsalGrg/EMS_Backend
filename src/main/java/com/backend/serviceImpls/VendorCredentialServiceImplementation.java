@@ -180,7 +180,7 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
     @Override
     public List<VendorRequestsDto> getVendorRequests(String username) {
 
-        checkUserCredentials(username, "ADMIN");
+//        checkUserCredentials(username, "ADMIN");
 
         List<VendorCredential> vendorRequests= vendorCredentialsRepo.findByIsVerifiedAndIsDeclined(false, false);
 

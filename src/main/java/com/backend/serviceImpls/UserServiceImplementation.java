@@ -1,21 +1,31 @@
 package com.backend.serviceImpls;
 
+import com.backend.dtos.LoginRegisterResponse;
+import com.backend.dtos.internals.EmailVerificationServiceResponse;
 import com.backend.dtos.login.LoginUserDto;
+import com.backend.dtos.register.RegisterResponse;
 import com.backend.dtos.register.RegisterUserDto;
+import com.backend.dtos.register.VerifyOtpRequest;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
+import com.backend.models.EmailVerification;
 import com.backend.models.Role;
 import com.backend.models.User;
 import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
+import com.backend.services.EmailService;
+import com.backend.services.EmailVerificationService;
 import com.backend.services.UserService;
+import com.backend.utils.EmailMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserServiceImplementation implements UserService, UserDetailsService {
@@ -23,19 +33,32 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
+    private EmailVerificationService emailVerificationService;
+    private EmailService emailService;
     private final CloudinaryUploadServiceImplementation cloudinary;
 
+    private EmailMessages emailMessages;
+
     @Autowired
-    public UserServiceImplementation(UserRepository userRepository, RoleRepository roleRepository, CloudinaryUploadServiceImplementation cloudinary){
+    public UserServiceImplementation
+            (UserRepository userRepository, RoleRepository roleRepository,
+             CloudinaryUploadServiceImplementation cloudinary,
+             EmailVerificationService emailVerificationService,
+             EmailMessages emailMessages,
+             EmailService emailService){
+
         this.userRepository= userRepository;
         this.roleRepository= roleRepository;
         this.cloudinary= cloudinary;
+        this.emailVerificationService= emailVerificationService;
+        this.emailMessages= emailMessages;
+        this.emailService= emailService;
     }
 
 
     //here contains the overridden method from the UserDetailsService
 
-    public User registerAdmin(RegisterUserDto registerUserDto){
+    public LoginRegisterResponse registerAdmin(RegisterUserDto registerUserDto){
 
         User user= new User();
         user.setEmail(registerUserDto.getEmail());
@@ -59,7 +82,11 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
         userRepository.save(user);
 
-        return user;
+        return LoginRegisterResponse
+                .builder().
+                message("User register successful")
+                .timeStamp(LocalDateTime.now())
+                .build();
     }
 
 
@@ -67,7 +94,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
     //overridden method from the UserService interface
     @Override
-    public User registerUser(RegisterUserDto registerUserDto) {
+    public RegisterResponse registerUser(RegisterUserDto registerUserDto) {
 
         boolean usernameExists= userRepository.existsByUsername(registerUserDto.getUsername());
         boolean emailExists= userRepository.existsByEmail(registerUserDto.getEmail());
@@ -109,17 +136,60 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
         //no events are there in the user at first
         user.setEvents(null);
-
+        user.setEnabled(false);
+        user.setVerified(false);
         saveUser(user);
 
-        return user;
+
+        EmailVerificationServiceResponse emailVerificationServiceResponse= emailVerificationService.getEmailVerification(user);
+
+        Map<String, String> emailVerificationMessages= emailMessages.userEmailVerificationOtpMessage(user.getEmail(), emailVerificationServiceResponse.getOtp());
+
+        String subject = emailVerificationMessages.get("subject");
+        String body = emailVerificationMessages.get("message");
+
+        emailService.sendEmail(
+                "asal.gurung.a21.2@icp.edu.np",
+                subject,
+                body
+        );
+        return RegisterResponse
+                .builder().
+                message("Verify OTP")
+                .verificationToken(emailVerificationServiceResponse.getVerificationToken())
+                .timestamp(LocalDateTime.now())
+                .userEmail(user.getEmail())
+                .build();
     }
 
-    @Override
-    public User loginUser(LoginUserDto loginUserDto){
+    public LoginRegisterResponse verifyOtp(VerifyOtpRequest verifyOtpRequest){
+        EmailVerification emailVerification= emailVerificationService.validateOtp(verifyOtpRequest.getVerificationToken()
+                , verifyOtpRequest.getOtp());
+        User user= emailVerification.getUser();
+        user.setVerified(true);
+        user.setEnabled(true);
 
-       return userRepository.findByEmailAndPassword(loginUserDto.getEmail(), loginUserDto.getPassword())
+        userRepository.save(user);
+
+        return LoginRegisterResponse
+                .builder()
+                .message("Email Verification Successful")
+                .timeStamp(LocalDateTime.now())
+                .build();
+    }
+
+
+    @Override
+    public LoginRegisterResponse loginUser(LoginUserDto loginUserDto){
+
+       userRepository.findByEmailAndPassword(loginUserDto.getEmail(), loginUserDto.getPassword())
                 .orElseThrow(()-> new ResourceNotFoundException("User with the given credentials does not exist!"));
+       return LoginRegisterResponse.
+               builder()
+               .message("User login successful")
+               .timeStamp(LocalDateTime.now())
+               .build();
+
     }
 
     @Override
