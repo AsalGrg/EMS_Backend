@@ -42,5 +42,21 @@ public class EmailMessages {
         return vendorDeclineSubjectAndMessage;
     }
 
+    public Map<String, String> userEmailVerificationOtpMessage(String username, String otp){
+
+        Map<String, String> vendorSuccessSubjectAndMessage= new HashMap<>();
+
+        vendorSuccessSubjectAndMessage.put("subject", "Email Verification OTP");
+        vendorSuccessSubjectAndMessage.put("message",  "Dear "+username+",\n" +
+                "\n" +
+                "Your OTP code for email verification is: "+otp+".\n" +
+                "\n" +
+                "Thank you.\n" +
+                "\n" +
+                "The Prastuti Team");
+
+        return vendorSuccessSubjectAndMessage;
+    }
+
 //    public String
 }

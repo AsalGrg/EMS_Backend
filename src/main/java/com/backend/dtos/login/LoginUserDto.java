@@ -3,6 +3,7 @@ package com.backend.dtos.login;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,5 +18,6 @@ public class LoginUserDto {
 
     @NotNull(message = "Password is required")
     @NotEmpty(message = "Password cannot be empty")
+    @Size(max = 12 , min = 8, message = "Password must contain 8-12 characters")
     private String password;
 }
