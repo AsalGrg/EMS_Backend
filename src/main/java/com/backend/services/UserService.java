@@ -19,7 +19,7 @@ public interface UserService {
 
     User getUserByUsernameOrEmail(String usernameOrEmail);
 
-
+    User saveUser(User user);
 
 
 

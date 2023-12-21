@@ -2,12 +2,11 @@ package com.backend.controllers;
 
 
 import com.backend.dtos.AddPromoCodeDto;
-import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
-import com.backend.serviceImpls.EventServiceImplementation;
+import com.backend.services.EventService;
 import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -25,13 +24,13 @@ import java.util.List;
 //@RequestMapping("/events")
 public class EventController {
 
-    private final EventServiceImplementation eventService;
+    private final EventService eventService;
 
     private final HttpSession httpSession;
 
     @Autowired
     public EventController
-            (EventServiceImplementation eventService, HttpSession httpSession){
+            (EventService eventService, HttpSession httpSession){
         this.eventService= eventService;
         this.httpSession= httpSession;
     }
@@ -72,13 +71,6 @@ public class EventController {
         return ResponseEntity.ok(trendingEvents);
     }
 
-    @PostMapping("/private/{accessToken}")
-    public ResponseEntity<?> getPrivateEventDetail(@PathVariable("accessToken") String accessToken){
-        EventResponseDto eventDetails = eventService.enterEventByAccessToken(accessToken, (String) httpSession.getAttribute("CurrentUser"));
-
-        return new ResponseEntity<>(eventDetails, HttpStatus.OK);
-    }
-
     @PostMapping("/addEvent")
     public ResponseEntity<?> addEvent(@Valid @RequestPart("eventDetails") AddEventRequestDto addEventDto,
                                       @IsImage @RequestPart(value = "eventCoverPhoto" ,required = false)MultipartFile eventCoverPhoto){
@@ -100,19 +92,19 @@ public class EventController {
     }
 
 
-    @PostMapping("/event-access-request")
-    public ResponseEntity<?> getEventAccessRequests(){
-       List<EventAccessRequestsView> eventAccessRequestsViews=  eventService.getEventAccessRequests((String) httpSession.getAttribute("CurrentUser"));
+//    @PostMapping("/event-access-request")
+//    public ResponseEntity<?> getEventAccessRequests(){
+//       List<EventAccessRequestsView> eventAccessRequestsViews=  eventService.getEventAccessRequests((String) httpSession.getAttribute("CurrentUser"));
+//
+//       return new ResponseEntity<>(eventAccessRequestsViews, HttpStatus.OK);
+//    }
 
-       return new ResponseEntity<>(eventAccessRequestsViews, HttpStatus.OK);
-    }
-
-    @PostMapping("/make-event-access-request/{accessToken}")
-    public ResponseEntity<?> sendEventAccessRequest(@PathVariable("accessToken") String accessToken){
-        String currentUser= (String) httpSession.getAttribute("CurrentUser");
-
-        eventService.makeEventAccessRequest(currentUser, accessToken);
-
-        return new ResponseEntity<>("Your request has been collected", HttpStatus.OK);
-    }
+//    @PostMapping("/make-event-access-request/{accessToken}")
+//    public ResponseEntity<?> sendEventAccessRequest(@PathVariable("accessToken") String accessToken){
+//        String currentUser= (String) httpSession.getAttribute("CurrentUser");
+//
+//        eventService.makeEventAccessRequest(currentUser, accessToken);
+//
+//        return new ResponseEntity<>("Your request has been collected", HttpStatus.OK);
+//    }
 }

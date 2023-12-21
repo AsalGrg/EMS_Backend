@@ -7,12 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 
-@Repository
-public interface EventAccessRequestRepository extends JpaRepository<EventAccessRequest, Integer> {
+public interface EventAccessRequestRepository{
 
-    EventAccessRequest findByUserAndEvent(User user, Event event);
+    void saveEventAccessRequest(EventAccessRequest eventAccessRequest);
 
-    List<EventAccessRequest> findByEvent_EventOrganizer_Username(String eventOrganizer);
+    Optional<EventAccessRequest> getByUserAndEvent(User user, Event event);
+
+    List<EventAccessRequest> findEventAccessRequestByEventOrganizer(String eventOrganizer);
 }

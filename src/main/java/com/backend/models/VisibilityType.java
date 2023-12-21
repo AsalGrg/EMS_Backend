@@ -1,10 +1,9 @@
 package com.backend.models;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
+import java.net.Inet4Address;
 
 @Getter
 @Setter
@@ -13,17 +12,17 @@ import java.util.List;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "event_type")
-public class EventType {
+@Table(name = "visibility_type")
+public class VisibilityType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "title", length = 20)
+    @Column(name = "visibility_type_name")
     private String title;
 
-    @Column(name ="description")
+    @Column(name = "description")
     private String description;
+
 }

@@ -8,6 +8,7 @@ import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -20,7 +21,40 @@ public class AddEventRequestDto {
 
     @NotNull(message = "Event name must be given")
     @NotEmpty(message = "Event name cannot be empty")
-    private String name;
+    private String eventName;
+
+    private String organizerDetails;
+
+    private String locationType;
+
+    private String locationName;
+
+    private LocalDate eventStartDate;
+    private LocalTime eventStartTime;
+    private LocalDate eventEndDate;
+    private LocalTime eventEndTime;
+    private boolean displayStartTime;
+    private boolean displayEndTime;
+
+    private String aboutEvent;
+    private boolean hasStarring;
+
+//    private String
+
+    private String ticketType;
+    private String ticketName;
+    private String ticketQuantity;
+    private String ticketPrice;
+    private LocalDate saleStartDate;
+    private LocalTime saleStartTime;
+    private LocalDate saleEndDate;
+    private LocalTime saleEndTime;
+
+    private String eventAccessType;
+    private String eventAccessPassword;
+
+
+
 
     @NotNull(message = "Event location must be given")
     @NotEmpty(message = "Event location cannot be empty")

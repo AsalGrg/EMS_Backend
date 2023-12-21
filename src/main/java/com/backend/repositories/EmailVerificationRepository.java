@@ -2,13 +2,16 @@ package com.backend.repositories;
 
 
 import com.backend.models.EmailVerification;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
-public interface EmailVerificationRepository extends JpaRepository<EmailVerification, Integer> {
 
-    Optional<EmailVerification> findByVerificationToken(String verificationToken);
+public interface EmailVerificationRepository {
+
+//    Optional<EmailVerification> findByVerificationToken(String verificationToken);
+
+    Optional<EmailVerification> getByEmailVerificationToken(String token);
+
+    void saveEmailVerification(EmailVerification emailVerification);
 }

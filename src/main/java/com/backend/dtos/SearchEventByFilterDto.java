@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class SearchEventByFilterDto {
     private LocalDate event_date;
 
     @NotNull(message = "Please fill out time")
-    private Time event_time;
+    private LocalTime event_time;
 
     @NotNull(message = "Please fill out event category")
     private String event_category;

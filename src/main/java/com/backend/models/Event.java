@@ -24,68 +24,45 @@ public class Event {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "title")
+    @Column(name = "event_title")
     private String name;
 
-    @Column(name = "location")
-    private String location;
+    @OneToOne
+    @JoinColumn(name= "event_location_id")
+    private EventLocation eventLocation;
 
-    @Column(name = "venue")
-    private String eventVenue;
+    @OneToOne
+    @JoinColumn(name = "event_date_id")
+    private EventDate eventDate;
 
-    @Column(name = "published_date")
-    private LocalDate published_date;
+    @Column(name = "event_cover_image_url")
+    private String eventCoverPage;
 
+    @Column(name = "hasStarring")
+    private boolean hasStarring;
 
-    @Column(name = "event_date")
-    private LocalDate eventDate;
+    @Column(name = "about_event")
+    private String aboutEvent;
 
-    @Column(name = "event_time")
-    private Time eventTime;
-
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "entry_fee")
-    private double entryFee;
-
-    @Column(name = "isPrivate")
+    @Column(name="isPrivate")
     private boolean isPrivate;
 
-    @Column(name = "available_seats")
-    private int seats;
+    @OneToOne
+    @JoinColumn(name = "event_ticket_id")
+    private EventTicket eventTicket;
 
-    @Column(name = "tickets_sold")
-    private int ticketSold;
+    @OneToOne
+    @JoinColumn(name = "visibility_id")
+    private EventVisibility eventVisibility;
 
-    @Column(name = "access_token")
-    private String accessToken;
-
-    @Column(name = "isAccepted")
-    private boolean isAccepted;
-
-    @Column(name = "isDeclined")
-    private boolean isDeclined;
-
-    @Column(name = "event_cover_image")
-    private String eventCoverImage;
-
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "event_organizer_id")
     private User eventOrganizer;
 
-    @ManyToOne
-    @JoinColumn(name = "event_vendor_id")
-    private User eventVendor;
-
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "event_type_id")
-    @JsonIgnore
     private EventType eventType;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "event_group" , joinColumns = @JoinColumn(name = "event_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private Set<User> event_group;
 
 }
 
