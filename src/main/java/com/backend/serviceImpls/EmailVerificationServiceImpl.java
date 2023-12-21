@@ -41,7 +41,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                 user
         );
 
-        emailVerificationRepo.save(emailVerification);
+        emailVerificationRepo.saveEmailVerification(emailVerification);
 
         return EmailVerificationServiceResponse.builder()
                 .otp(otp)
@@ -65,13 +65,13 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         }
 
         emailVerification.setVerifiedAt(LocalDateTime.now());
-        emailVerificationRepo.save(emailVerification);
+        emailVerificationRepo.saveEmailVerification(emailVerification);
 
         return emailVerification;
     }
 
     private EmailVerification getEmailVerificationByToken(String token){
-        return emailVerificationRepo.findByVerificationToken(token)
+        return emailVerificationRepo.getByEmailVerificationToken(token)
                 .orElseThrow(()->new ResourceNotFoundException("Invalid Verification Token"));
     }
 }

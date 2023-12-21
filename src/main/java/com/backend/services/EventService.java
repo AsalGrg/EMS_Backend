@@ -2,6 +2,7 @@ package com.backend.services;
 
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.EventAccessRequestsView;
+import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
@@ -12,6 +13,12 @@ import java.util.List;
  public interface EventService{
 
     Event getEventById(int id);
+
+    List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto);
+
+     List<EventResponseDto> getTrendingEvents();
+
+     void addPromoCode(AddPromoCodeDto promoCodeDto);
 
     List<Event> getEventByPlace(String place);
 
@@ -25,14 +32,4 @@ import java.util.List;
 
      EventResponseDto addEvent(AddEventRequestDto addEventDto);
 
-     Event getEventByAccessToken(String accessToken);
-
-     EventResponseDto enterEventByAccessToken(String accessToken, String username);
-
-    //handler to get the eventAccessRequests
-     List<EventAccessRequestsView> getEventAccessRequests(String username);
-
-     void addEventVendorRequestAction(String username, String action, String eventName);
-
-     void makeEventAccessRequest(String username, String accessToken);
 }

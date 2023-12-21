@@ -9,26 +9,45 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EventRepository extends JpaRepository<Event, Integer> {
+public interface EventRepository {
 
-    List<Event> findByLocationAndEventTimeAndEventDateAndEventTypeAndIsAccepted(String location, Time eventTime, LocalDate eventDate, EventType eventType, boolean isAccepted);
-    Optional<Event>  findEventByName(String name);
+    Event getEventById(int id);
 
-    Event findEventById(int id);
+    Optional<Event> getEventByName(String name);
 
-    List<Event> findEventByLocationAndIsAcceptedAndIsDeclined(String location, boolean isAccepted, boolean isDeclined);
+    void saveEvent(Event event);
 
-    @Query(value = "SELECT e.* from event e Inner JOIN event_type et ON e.event_type_id= et.id WHERE et.title =:name AND e.isAccepted= true AND e.isDeclined= false", nativeQuery = true)
-    List<Event> findEventByType(@Param("name") String type);
+    List<Event> getEventByLocation(String location);
 
-    List<Event> findByIsAcceptedAndIsDeclined(boolean isAccepted, boolean isDeclined);
+    List<Event> getEventByType(String type);
 
-    List<Event> findAllByIsAcceptedAndEventDateAfterOrderByTicketSoldDesc(boolean isAccepted, LocalDate eventDateAfter);
+    List<Event> getAllEvents();
+
+    List<Event> getEventByFilter(String location, LocalTime eventTime, LocalDate eventDate, EventType eventType);
+
+    List<Event> getTrendingEvents(LocalDate date);
+
     boolean existsByName(String name);
-
-    Optional<Event> findByAccessToken(String accessToken);
+//
+//    List<Event> findByLocationAndEventTimeAndEventDateAndEventTypeAndIsAccepted(String location, Time eventTime, LocalDate eventDate, EventType eventType, boolean isAccepted);
+//    Optional<Event>  findEventByName(String name);
+//
+//    Event findEventById(int id);
+//
+//    List<Event> findEventByLocationAndIsAcceptedAndIsDeclined(String location, boolean isAccepted, boolean isDeclined);
+//
+//    @Query(value = "SELECT e.* from event e Inner JOIN event_type et ON e.event_type_id= et.id WHERE et.title =:name AND e.isAccepted= true AND e.isDeclined= false", nativeQuery = true)
+//    List<Event> findEventByType(@Param("name") String type);
+//
+//    List<Event> findByIsAcceptedAndIsDeclined(boolean isAccepted, boolean isDeclined);
+//
+//    List<Event> findAllByIsAcceptedAndEventDateAfterOrderByTicketSoldDesc(boolean isAccepted, LocalDate eventDateAfter);
+//    boolean existsByName(String name);
+//
+//    Optional<Event> findByAccessToken(String accessToken);
 }

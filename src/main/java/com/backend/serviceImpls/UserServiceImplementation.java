@@ -13,6 +13,7 @@ import com.backend.models.Role;
 import com.backend.models.User;
 import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
+import com.backend.services.CloudinaryUploadService;
 import com.backend.services.EmailService;
 import com.backend.services.EmailVerificationService;
 import com.backend.services.UserService;
@@ -35,14 +36,14 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
     private EmailVerificationService emailVerificationService;
     private EmailService emailService;
-    private final CloudinaryUploadServiceImplementation cloudinary;
+    private final CloudinaryUploadService cloudinary;
 
     private EmailMessages emailMessages;
 
     @Autowired
     public UserServiceImplementation
             (UserRepository userRepository, RoleRepository roleRepository,
-             CloudinaryUploadServiceImplementation cloudinary,
+             CloudinaryUploadService cloudinary,
              EmailVerificationService emailVerificationService,
              EmailMessages emailMessages,
              EmailService emailService){
@@ -64,7 +65,6 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         user.setEmail(registerUserDto.getEmail());
         user.setUsername(registerUserDto.getUsername());
         user.setAddress(registerUserDto.getAddress());
-        user.setEvents(null);
 
         roleRepository.findByTitle("ADMIN").ifPresentOrElse(role -> user.setUserRoles(List.of(role)) , ()->{
             Role role = new Role();
@@ -78,7 +78,6 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         user.setPassword(registerUserDto.getPassword());
 
         //no events are there in the user at first
-        user.setEvents(null);
 
         userRepository.save(user);
 
@@ -116,7 +115,6 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         user.setEmail(registerUserDto.getEmail());
         user.setUsername(registerUserDto.getUsername());
         user.setAddress(registerUserDto.getAddress());
-        user.setEvents(null);
         user.setPhoneNumber(registerUserDto.getPhoneNumber());
 
         //saving the url of the user dp in the
@@ -135,7 +133,6 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         user.setPassword(registerUserDto.getPassword());
 
         //no events are there in the user at first
-        user.setEvents(null);
         user.setEnabled(false);
         user.setVerified(false);
         saveUser(user);
@@ -203,6 +200,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
                 orElseThrow(()-> new ResourceNotFoundException("Invalid username or email"));
     }
 
+    @Override
     public User saveUser(User user){
         return userRepository.save(user);
     }

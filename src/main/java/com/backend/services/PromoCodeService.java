@@ -1,5 +1,7 @@
 package com.backend.services;
 
+import com.backend.dtos.AddPromoCodeDto;
+import com.backend.models.Event;
 import com.backend.models.PromoCode;
 
 public interface PromoCodeService {
@@ -9,4 +11,6 @@ public interface PromoCodeService {
     boolean checkPromoCodeExistsByTitle(String title);
 
     PromoCode savePromoCode(PromoCode promoCode);
+
+    PromoCode addPromocode(AddPromoCodeDto promoCodeDto, Event event);
 }

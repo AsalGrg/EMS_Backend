@@ -3,8 +3,8 @@ package com.backend.controllers;
 import com.backend.dtos.VendorDetailViewDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
-import com.backend.serviceImpls.EventServiceImplementation;
-import com.backend.serviceImpls.VendorCredentialServiceImplementation;
+import com.backend.services.EventService;
+import com.backend.services.VendorCredentialService;
 import com.backend.utils.FileNotEmpty;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -26,9 +26,9 @@ import java.util.List;
 //@RequestMapping("/vendor")
 public class VendorController {
 
-    private final VendorCredentialServiceImplementation vendorCredentialServiceImpl;
+    private final VendorCredentialService vendorCredentialService;
 
-    private final EventServiceImplementation eventServiceImpl;
+//    private final EventService eventService;
 
     private final HttpSession httpSession;
 
@@ -37,15 +37,15 @@ public class VendorController {
     Logger logger= LoggerFactory.getLogger(VendorController.class);
 
     public VendorController
-            (VendorCredentialServiceImplementation vendorCredentialServiceImpl,HttpSession httpSession, EventServiceImplementation eventServiceImpl){
-        this.vendorCredentialServiceImpl= vendorCredentialServiceImpl;
-        this.eventServiceImpl= eventServiceImpl;
+            (VendorCredentialService vendorCredentialService,HttpSession httpSession){
+        this.vendorCredentialService= vendorCredentialService;
+//        this.eventService= eventService;
         this.httpSession= httpSession;
     }
 
     @GetMapping("/allVendors")
     public ResponseEntity<?> getAllVendors(){
-        List<VendorDetailViewDto> allVendorsView= vendorCredentialServiceImpl.getAllVendors();
+        List<VendorDetailViewDto> allVendorsView= vendorCredentialService.getAllVendors();
 
         return ResponseEntity.ok(allVendorsView);
     }
@@ -65,7 +65,7 @@ public class VendorController {
         vendorRegistrationRequestDto.setVendorRegistrationFilledForm(vendorRegistrationFilledForm);
 
         //now passing the vendor request dto to the becomeVendor service method as
-        VendorRegistrationResponse vendorRegistrationResponse = vendorCredentialServiceImpl.becomeVendor(vendorRegistrationRequestDto);
+        VendorRegistrationResponse vendorRegistrationResponse = vendorCredentialService.becomeVendor(vendorRegistrationRequestDto);
 
         return ResponseEntity.ok(vendorRegistrationResponse);
     }
@@ -74,7 +74,7 @@ public class VendorController {
     public ResponseEntity<?> addEventVendorRequestAction(@PathVariable("eventName") String eventName, @PathVariable("action")String action){
         String username = (String)httpSession.getAttribute("CurrentUser");
 
-        eventServiceImpl.addEventVendorRequestAction(username, action, eventName);
+//        eventService.addEventVendorRequestAction(username, action, eventName);
 
         return new ResponseEntity<>("Add request event "+action+"ed successfully", HttpStatus.OK);
     }

@@ -58,10 +58,6 @@ public class User implements UserDetails {
     @JoinTable(name = "user_roles" , joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role>  userRoles;
 
-    @ManyToMany(mappedBy = "event_group")
-    @JsonIgnore
-    private Set<Event> events;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> grantedAuthorities= new ArrayList<>();

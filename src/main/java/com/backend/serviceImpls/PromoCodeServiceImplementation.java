@@ -35,6 +35,7 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
         return promocodeRepository.save(promoCode);
     }
 
+    @Override
     public PromoCode addPromocode(AddPromoCodeDto promoCodeDto,Event event) {
         if(!event.getEventOrganizer().getUsername().equals(promoCodeDto.getUsername())){
             throw new NotAuthorizedException("You do not have privileges to add promo codes to the event");

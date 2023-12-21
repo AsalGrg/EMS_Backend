@@ -13,6 +13,8 @@ import com.backend.models.User;
 import com.backend.models.VendorCredential;
 import com.backend.repositories.RoleRepository;
 import com.backend.repositories.VendorCredentialsRepository;
+import com.backend.services.CloudinaryUploadService;
+import com.backend.services.UserService;
 import com.backend.services.VendorCredentialService;
 import com.backend.utils.EmailMessages;
 import org.springframework.stereotype.Service;
@@ -28,22 +30,22 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
 
     private final VendorCredentialsRepository vendorCredentialsRepo;
 
-    private final UserServiceImplementation userService;
+    private final UserService userService;
 
     private final RoleRepository roleRepository;
 
-    private final CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl;
+    private final CloudinaryUploadService cloudinaryUploadService;
 
     private final EmailServiceImplementation emailServiceImplementation;
     private final EmailMessages emailMessages;
 
     public VendorCredentialServiceImplementation
-            (VendorCredentialsRepository vendorCredentialsRepository, UserServiceImplementation userService, RoleRepository roleRepository,
-             CloudinaryUploadServiceImplementation cloudinaryUploadServiceImpl, EmailServiceImplementation emailServiceImplementation, EmailMessages emailMessages){
+            (VendorCredentialsRepository vendorCredentialsRepository, UserService userService, RoleRepository roleRepository,
+             CloudinaryUploadService cloudinaryUploadService, EmailServiceImplementation emailServiceImplementation, EmailMessages emailMessages){
         vendorCredentialsRepo= vendorCredentialsRepository;
         this.userService= userService;
         this.roleRepository= roleRepository;
-        this.cloudinaryUploadServiceImpl= cloudinaryUploadServiceImpl;
+        this.cloudinaryUploadService= cloudinaryUploadService;
         this.emailServiceImplementation =emailServiceImplementation;
         this.emailMessages= emailMessages;
     }
@@ -120,9 +122,9 @@ public class VendorCredentialServiceImplementation implements VendorCredentialSe
         }
 
         //saving the files of the vendors in the cloudinary as
-        String taxClearanceCertificateUrl =  cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate(), "Vendor Documents");
-        String vendorRegistrationDocumentUrl =  cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationDocument(), "Vendor Documents");
-        String vendorRegistrationFilledFormUrl =  cloudinaryUploadServiceImpl.uploadImage(vendorRegistrationReq.getVendorRegistrationFilledForm(), "Vendor Documents");
+        String taxClearanceCertificateUrl =  cloudinaryUploadService.uploadImage(vendorRegistrationReq.getTaxClearanceCertificate(), "Vendor Documents");
+        String vendorRegistrationDocumentUrl =  cloudinaryUploadService.uploadImage(vendorRegistrationReq.getVendorRegistrationDocument(), "Vendor Documents");
+        String vendorRegistrationFilledFormUrl =  cloudinaryUploadService.uploadImage(vendorRegistrationReq.getVendorRegistrationFilledForm(), "Vendor Documents");
 
         User user= checkUserCredentials(vendorRegistrationReq.getUsername(), "USER");
 

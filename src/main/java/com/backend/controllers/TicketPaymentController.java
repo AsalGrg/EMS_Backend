@@ -3,6 +3,7 @@ package com.backend.controllers;
 import com.backend.dtos.payment.PaymentRequestDto;
 import com.backend.dtos.payment.PaymentResponseDto;
 import com.backend.serviceImpls.TicketPaymentServiceImplementation;
+import com.backend.services.TicketPaymentService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,18 +18,18 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin("*")
 public class TicketPaymentController {
 
-    private final TicketPaymentServiceImplementation ticketPaymentServiceImpl;
+    private final TicketPaymentService ticketPaymentService;
 
     @Autowired
-    public TicketPaymentController(TicketPaymentServiceImplementation ticketPaymentServiceImpl){
-        this.ticketPaymentServiceImpl= ticketPaymentServiceImpl;
+    public TicketPaymentController(TicketPaymentService ticketPaymentService){
+        this.ticketPaymentService= ticketPaymentService;
     }
 
 
     @PostMapping("/makePayment")
     public ResponseEntity<?> makePayment(@Valid @RequestBody PaymentRequestDto paymentRequestDto, HttpSession httpSession){
         paymentRequestDto.setUsername((String)httpSession.getAttribute("CurrentUser"));
-        PaymentResponseDto paymentResponseDto= ticketPaymentServiceImpl.makePayment(paymentRequestDto);
+        PaymentResponseDto paymentResponseDto= ticketPaymentService.makePayment(paymentRequestDto);
 
         return (new ResponseEntity<>(paymentResponseDto, HttpStatus.OK));
     }

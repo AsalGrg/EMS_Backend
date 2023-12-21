@@ -6,10 +6,7 @@ import com.backend.dtos.login.LoginUserDto;
 import com.backend.dtos.register.RegisterResponse;
 import com.backend.dtos.register.RegisterUserDto;
 import com.backend.dtos.register.VerifyOtpRequest;
-import com.backend.models.User;
-import com.backend.serviceImpls.UserServiceImplementation;
 import com.backend.services.UserService;
-import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @CrossOrigin("*")
