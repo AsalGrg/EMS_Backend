@@ -4,8 +4,6 @@ package com.backend.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Builder
@@ -14,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "event_type")
-public class EventType {
+public class EventCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

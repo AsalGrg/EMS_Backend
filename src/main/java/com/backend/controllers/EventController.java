@@ -75,9 +75,6 @@ public class EventController {
     public ResponseEntity<?> addEvent(@Valid @RequestPart("eventDetails") AddEventRequestDto addEventDto,
                                       @IsImage @RequestPart(value = "eventCoverPhoto" ,required = false)MultipartFile eventCoverPhoto){
 //        addEventDto.setPublished_date(LocalDate.now());
-        addEventDto.setEvent_organizer((String) httpSession.getAttribute("CurrentUser"));
-        addEventDto.setEventCoverPhoto(eventCoverPhoto);
-
 
         return new ResponseEntity<>(eventService.addEvent(addEventDto), HttpStatus.OK);
     }
