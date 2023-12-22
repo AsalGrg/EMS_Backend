@@ -1,14 +1,8 @@
 package com.backend.models;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.sql.Time;
-import java.time.LocalDate;
-
-import java.util.Set;
 
 @Getter
 @Setter
@@ -60,8 +54,8 @@ public class Event {
     private User eventOrganizer;
 
     @OneToOne
-    @JoinColumn(name = "event_type_id")
-    private EventType eventType;
+    @JoinColumn(name = "event_cat_id")
+    private EventCategory eventCategory;
 
 
 }

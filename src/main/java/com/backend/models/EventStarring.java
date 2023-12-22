@@ -36,6 +36,12 @@ public class EventStarring {
     @Column(name = "starring3_photo")
     private String starring3Photo;
 
+    @Column(name = "starring3_name")
+    private String starring3Name;
+
+    @Column(name = "starring4_photo")
+    private String starring4Photo;
+
     @Column(name = "starring4_name")
     private String starring4Name;
 

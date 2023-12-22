@@ -1,7 +1,7 @@
 package com.backend.repositoryImpls;
 
 import com.backend.models.Event;
-import com.backend.models.EventType;
+import com.backend.models.EventCategory;
 import com.backend.repositories.EventRepository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -44,10 +44,11 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public void saveEvent(Event event) {
+    public Event saveEvent(Event event) {
         Session session= sessionFactory.openSession();
-        session.persist(event);
+        Event event1 = (Event) session.save(event);
         session.close();
+        return event1;
     }
 
     @Override
@@ -81,7 +82,7 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public List<Event> getEventByFilter(String location, LocalTime eventTime, LocalDate eventDate, EventType eventType) {
+    public List<Event> getEventByFilter(String location, LocalTime eventTime, LocalDate eventDate, EventCategory eventType) {
         Session session= sessionFactory.openSession();
         String query = "FROM Event er WHERE er.eventLocation.locationName=: location AND er.eventDate.eventStartTime = :eventTime AND er.eventDate.eventStartDate = :eventDate AND er.eventType =: eventType AND er.isPrivate =: false";
         Query<Event> eventQuery = session.createQuery(query, Event.class);

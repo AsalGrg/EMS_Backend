@@ -10,7 +10,9 @@ import com.backend.models.*;
 import com.backend.repositories.*;
 import com.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -21,6 +23,7 @@ public class EventServiceImplementation implements EventService {
 
     private final EventRepository eventRepository;
 
+    //must be replaced wit eventCategoryService
     private final EventTypeService eventTypeService;
 
     private final UserService userService;
@@ -31,7 +34,18 @@ public class EventServiceImplementation implements EventService {
 
     private final RoleService roleService;
 
-    private final CloudinaryUploadService cloudinaryUploadServiceImpl;
+
+    private EventLocationService eventLocationService;
+
+    private EventDateService eventDateService;
+
+    private EventTicketService eventTicketService;
+
+    private EventVisibilityService eventVisibilityService;
+
+    private  StarringService starringService;
+
+    private final CloudinaryUploadService cloudinaryUploadService;
 
 
     @Autowired
@@ -39,7 +53,9 @@ public class EventServiceImplementation implements EventService {
 
             (EventRepository eventRepository, EventTypeService eventTypeService, UserService userService
             , PromoCodeService promoCodeService,VendorCredentialService vendorCredentialsService,
-             RoleService roleService, CloudinaryUploadService cloudinaryUploadServiceImpl){
+             EventLocationService eventLocationService, EventDateService eventDateService,
+             EventTicketService eventTicketService, EventVisibilityService eventVisibilityService,
+             StarringService starringService,RoleService roleService, CloudinaryUploadService cloudinaryUploadServiceImpl){
 
         this.eventRepository= eventRepository;
         this.eventTypeService= eventTypeService;
@@ -47,7 +63,12 @@ public class EventServiceImplementation implements EventService {
         this.promoCodeService= promoCodeService;
         this.vendorCredentialsService= vendorCredentialsService;
         this.roleService= roleService;
-        this.cloudinaryUploadServiceImpl= cloudinaryUploadServiceImpl;
+        this.eventLocationService= eventLocationService;
+        this.eventDateService= eventDateService;
+        this.eventTicketService= eventTicketService;
+        this.eventVisibilityService = eventVisibilityService;
+        this.starringService =starringService;
+        this.cloudinaryUploadService= cloudinaryUploadServiceImpl;
     }
 
     public EventResponseDto changeToEventDto(Event event){
@@ -74,8 +95,8 @@ public class EventServiceImplementation implements EventService {
 
 
     @Override
-    public void saveEvent(Event event){
-        eventRepository.saveEvent(event);
+    public Event saveEvent(Event event){
+        return eventRepository.saveEvent(event);
     }
 
     @Override
@@ -143,99 +164,52 @@ public class EventServiceImplementation implements EventService {
 
     //service method for adding new event
     @Override
-    public EventResponseDto addEvent(AddEventRequestDto addEventDto) {
+    public EventResponseDto addEvent(AddEventRequestDto addEventDto, MultipartFile coverImage) {
 
-//        //checking if the event name already exists or not
-//        boolean eventNameExists= eventRepository.existsByName(addEventDto.getName());
-//
-//        //if the event name matches
-//        if(eventNameExists){
-//            throw new ResourceAlreadyExistsException("Event name already exists");
-//        }
-//
-//        VendorCredential vendorCredential= vendorCredentialsService.findVendorCredentialByUser(userService.getUserByUsername(addEventDto.getEvent_vendor()));
-//
-//        if(vendorCredential.isDeclined() && !vendorCredential.isVerified() && vendorCredential.isTerminated()){
-//            throw new ResourceNotFoundException("Invalid vendor name");
-//        }
-//
-//        if(addEventDto.getPromoCodes()!=null){
-//
-//            for(PromoCode promoCode: addEventDto.getPromoCodes()){
-//                if(promoCodeService.checkPromoCodeExistsByTitle(promoCode.getName())){
-//                    throw new ResourceAlreadyExistsException(promoCode.getName()+" already exits!");
-//                }
-//            }
-//        }
-//
-//        String accessToken = null;
-//        Set<User> usersInvited= new HashSet<>();
-//
-//        //checking if the event is private
-//        if(addEventDto.isPrivate()){
-//
-//            //generating random access token for the event
-//            accessToken = UUID.randomUUID().toString();
-//
-//            //checking if the user group is empty or not
-//            if(addEventDto.getEvent_group()!=null){
-//
-//                List<String> user_groups= addEventDto.getEvent_group();
-//
-//                //event organizer and event_organizer is automatically added
-//                user_groups.add(addEventDto.getEvent_organizer());
-//                user_groups.add(addEventDto.getEvent_vendor());
-//
-//                System.out.println(user_groups);
-//
-//                for(String usernameOrEmail: user_groups){
-//
-//                    //checking each username provided in the user group set and if exists in the database
-//                    User user= userService.getUserByUsernameOrEmail(usernameOrEmail);
-//
-//                    //adding the user details in the list
-//                    usersInvited.add(user);
-//                }
-//            }
-//        }
-//
-//        String coverImageUrl= null;
-//        if(addEventDto.getEventCoverPhoto()!=null){
-//            coverImageUrl = cloudinaryUploadServiceImpl.uploadImage(addEventDto.getEventCoverPhoto(), "Event Photos");
-//        }
-//
-//
-//        Event event= Event.builder()
-//                .name(addEventDto.getName())
-////                .eventDate(addEventDto.getEvent_date())
-//                .eventType(eventTypeService.getEventTypeByTitle(addEventDto.getEventType()))
-//                .isPrivate(addEventDto.isPrivate())
-//                .seats(addEventDto.getSeats())
-//                .eventOrganizer(userService.getUserByUsername(addEventDto.getEvent_organizer()))
-//                .isAccepted(false)
-//                .isDeclined(false)
-//                .accessToken(accessToken)
-////                .event_group(usersInvited)
-//                .eventCoverImage(coverImageUrl)
-//                .build();
-//
-//        //adding the event in the database
-//        saveEvent(event);
-//
-//        if(addEventDto.getPromoCodes()!=null) {
-//
-//            for(PromoCode promoCode: addEventDto.getPromoCodes()) {
-//                PromoCode savePromoCode = PromoCode
-//                        .builder()
-//                        .name(promoCode.getName())
-//                        .discount_amount(promoCode.getDiscount_amount())
-//                        .event(event)
-//                        .build();
-//
-//                promoCodeService.savePromoCode(savePromoCode);
-//            }
-//
-//        }
+        boolean eventNameExists = eventRepository.existsByName(addEventDto.getEventName());
+
+        if(eventNameExists) throw new ResourceAlreadyExistsException("Event name already exists");
+
+        //saving the event location detail
+        EventLocation eventLocation = eventLocationService.saveEventLocation(addEventDto.getLocationType(), addEventDto.getLocationName());
+
+        //saving the event date details in the event date table
+        EventDate eventDate = eventDateService.saveEventDate(addEventDto.getEventDateDetails());
+
+        String coverImageUrl = cloudinaryUploadService.uploadImage(coverImage, "Event Cover Photo");
+
+        EventTicket eventTicket= eventTicketService.saveEventTicket(addEventDto.getEventTicketDetails());
+
+        EventVisibility eventVisibility = eventVisibilityService.saveEventVisibility(
+                addEventDto.getEventVisibilityType(), addEventDto.getEventAccessPassword()
+        );
+
+        //getting the current user userName
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User organizer = userService.getUserByUsername(username);
+
+        EventCategory eventType = eventTypeService.getEventTypeByTitle(addEventDto.ge)
+        boolean hasStarring= addEventDto.isHasStarring();
+
+        Event savedEvent = saveEvent(
+                Event
+                        .builder()
+                        .eventLocation(eventLocation)
+                        .eventDate(eventDate)
+                        .eventCoverPage(coverImageUrl)
+                        .hasStarring(hasStarring)
+                        .aboutEvent(addEventDto.getAboutEvent())
+                        .isPrivate(addEventDto.isPrivate())
+                        .eventTicket(eventTicket)
+                        .eventOrganizer(organizer)
+                        .eventType(eve)
+        )
+
+        if(hasStarring){
+            starringService.saveStarring(addEventDto.getStarrings(), savedEvent);
+        }
+
 
         return null;
     }

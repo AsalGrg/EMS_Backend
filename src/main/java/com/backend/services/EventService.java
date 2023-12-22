@@ -7,6 +7,7 @@ import com.backend.dtos.addEvent.AddEventRequestDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.models.Event;
 import com.backend.models.PromoCode;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,8 +29,8 @@ import java.util.List;
 
      Event getEventByName(String name);
 
-     void saveEvent(Event event);
+     Event saveEvent(Event event);
 
-     EventResponseDto addEvent(AddEventRequestDto addEventDto);
+     EventResponseDto addEvent(AddEventRequestDto addEventDto, MultipartFile coverImage);
 
 }

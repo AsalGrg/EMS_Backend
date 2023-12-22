@@ -1,13 +1,9 @@
 package com.backend.repositories;
 
 import com.backend.models.Event;
-import com.backend.models.EventType;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import com.backend.models.EventCategory;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -20,7 +16,7 @@ public interface EventRepository {
 
     Optional<Event> getEventByName(String name);
 
-    void saveEvent(Event event);
+    Event saveEvent(Event event);
 
     List<Event> getEventByLocation(String location);
 
@@ -28,7 +24,7 @@ public interface EventRepository {
 
     List<Event> getAllEvents();
 
-    List<Event> getEventByFilter(String location, LocalTime eventTime, LocalDate eventDate, EventType eventType);
+    List<Event> getEventByFilter(String location, LocalTime eventTime, LocalDate eventDate, EventCategory eventType);
 
     List<Event> getTrendingEvents(LocalDate date);
 

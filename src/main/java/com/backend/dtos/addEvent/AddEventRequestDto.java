@@ -1,7 +1,9 @@
 package com.backend.dtos.addEvent;
 
 
+import com.backend.dtos.AddStarringDto;
 import com.backend.models.PromoCode;
+import com.backend.utils.ConditionalNotNull;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -23,75 +25,41 @@ public class AddEventRequestDto {
     @NotEmpty(message = "Event name cannot be empty")
     private String eventName;
 
+    @NotNull(message = "Organizer detail must be given")
+    @NotEmpty(message = "Organizer detail cannot be empty")
     private String organizerDetails;
 
+    @NotNull(message = "Event location type is required")
     private String locationType;
 
     private String locationName;
 
-    private LocalDate eventStartDate;
-    private LocalTime eventStartTime;
-    private LocalDate eventEndDate;
-    private LocalTime eventEndTime;
-    private boolean displayStartTime;
-    private boolean displayEndTime;
+    @NotNull(message = "Event date details are required")
+    @NotNull(message = "Event date details are required")
+    private EventDateDetailsDto eventDateDetails;
 
+    @NotNull(message = "Event ticket details are required")
+    @NotNull(message = "Event ticket details are required")
+    private EventTicketDetailsDto eventTicketDetails;
+
+
+    @NotNull(message = "About event is required")
+    @NotEmpty(message = "About event cannot be empty")
     private String aboutEvent;
+
     private boolean hasStarring;
+
+    private List<AddStarringDto> starrings;
 
 //    private String
 
-    private String ticketType;
-    private String ticketName;
-    private String ticketQuantity;
-    private String ticketPrice;
-    private LocalDate saleStartDate;
-    private LocalTime saleStartTime;
-    private LocalDate saleEndDate;
-    private LocalTime saleEndTime;
 
-    private String eventAccessType;
+    private boolean isPrivate;
+
+    @NotNull(message = "Event visibility type is required")
+    @NotEmpty(message = "Event visibility type cannot be empty")
+    private String eventVisibilityType;
+
     private String eventAccessPassword;
-
-
-
-
-    @NotNull(message = "Event location must be given")
-    @NotEmpty(message = "Event location cannot be empty")
-    private String location;
-
-    @NotNull(message = "Event date must be given")
-    private LocalDate event_date;
-
-    private LocalDate published_date;
-
-    private String event_organizer;
-
-
-    @NotNull(message = "Event Vendor must be given")
-    @NotEmpty(message = "Event Vendor cannot be empty")
-    private String event_vendor;
-
-    @NotNull(message = "Event description must be given")
-    @NotEmpty(message = "Event description cannot be empty")
-    private String description;
-
-    @NotNull(message = "Event entry fee must be given")
-    private double entryFee;
-
-    private boolean isPrivate;//by default the value is false
-
-    @NotNull(message = "Available seats must be given")
-    private int seats;
-
-    private List<String> event_group;
-
-    @NotNull(message = "Event name must be given")
-    @NotEmpty(message = "Event name cannot be empty")
-    private String eventType;
-
-    private MultipartFile eventCoverPhoto;
-
-    private List<PromoCode> promoCodes;
 
 }
