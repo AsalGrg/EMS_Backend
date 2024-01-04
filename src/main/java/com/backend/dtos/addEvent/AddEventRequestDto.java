@@ -25,14 +25,19 @@ public class AddEventRequestDto {
     @NotEmpty(message = "Event name cannot be empty")
     private String eventName;
 
-    @NotNull(message = "Organizer detail must be given")
-    @NotEmpty(message = "Organizer detail cannot be empty")
-    private String organizerDetails;
+//    @NotNull(message = "Organizer detail must be given")
+//    @NotEmpty(message = "Organizer detail cannot be empty")
+//    private String organizerDetails;
+
+    @NotNull(message = "Event category is required")
+    @NotEmpty(message = "Event category cannot be empty")
+    private String eventCategory;
 
     @NotNull(message = "Event location type is required")
     private String locationType;
 
     private String locationName;
+
 
     @NotNull(message = "Event date details are required")
     @NotNull(message = "Event date details are required")

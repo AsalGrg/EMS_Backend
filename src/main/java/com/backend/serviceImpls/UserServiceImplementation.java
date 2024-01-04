@@ -1,5 +1,6 @@
 package com.backend.serviceImpls;
 
+import com.backend.configs.JwtUtils;
 import com.backend.dtos.LoginRegisterResponse;
 import com.backend.dtos.internals.EmailVerificationServiceResponse;
 import com.backend.dtos.login.LoginUserDto;
@@ -36,6 +37,8 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
     private EmailVerificationService emailVerificationService;
     private EmailService emailService;
+
+    private JwtUtils jwtUtils;
     private final CloudinaryUploadService cloudinary;
 
     private EmailMessages emailMessages;
@@ -46,6 +49,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
              CloudinaryUploadService cloudinary,
              EmailVerificationService emailVerificationService,
              EmailMessages emailMessages,
+             JwtUtils jwtUtils,
              EmailService emailService){
 
         this.userRepository= userRepository;
@@ -54,6 +58,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         this.emailVerificationService= emailVerificationService;
         this.emailMessages= emailMessages;
         this.emailService= emailService;
+        this.jwtUtils= jwtUtils;
     }
 
 
@@ -181,9 +186,15 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
        userRepository.findByEmailAndPassword(loginUserDto.getEmail(), loginUserDto.getPassword())
                 .orElseThrow(()-> new ResourceNotFoundException("User with the given credentials does not exist!"));
+
+       UserDetails userDetails = loadUserByUsername(loginUserDto.getEmail());
+
+       String token = jwtUtils.generateJwtToken(userDetails);
+
        return LoginRegisterResponse.
                builder()
                .message("User login successful")
+               .jwtToken(token)
                .timeStamp(LocalDateTime.now())
                .build();
 
@@ -207,7 +218,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+        return userRepository.findByEmail(username)
                 .orElseThrow(()-> new UsernameNotFoundException("Invalid user"));
     }
 }

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class LoginRegisterResponse {
 
     String message;
+    String jwtToken;
     LocalDateTime timeStamp;
 //    String
 }
