@@ -24,7 +24,7 @@ public class EventServiceImplementation implements EventService {
     private final EventRepository eventRepository;
 
     //must be replaced wit eventCategoryService
-    private final EventTypeService eventTypeService;
+    private EventCategoryService eventCategoryService;
 
     private final UserService userService;
 
@@ -33,7 +33,6 @@ public class EventServiceImplementation implements EventService {
     private final VendorCredentialService vendorCredentialsService;
 
     private final RoleService roleService;
-
 
     private EventLocationService eventLocationService;
 
@@ -51,14 +50,14 @@ public class EventServiceImplementation implements EventService {
     @Autowired
     public EventServiceImplementation
 
-            (EventRepository eventRepository, EventTypeService eventTypeService, UserService userService
+            (EventRepository eventRepository, UserService userService
             , PromoCodeService promoCodeService,VendorCredentialService vendorCredentialsService,
              EventLocationService eventLocationService, EventDateService eventDateService,
              EventTicketService eventTicketService, EventVisibilityService eventVisibilityService,
+             EventCategoryService eventCategoryService,
              StarringService starringService,RoleService roleService, CloudinaryUploadService cloudinaryUploadServiceImpl){
 
         this.eventRepository= eventRepository;
-        this.eventTypeService= eventTypeService;
         this.userService= userService;
         this.promoCodeService= promoCodeService;
         this.vendorCredentialsService= vendorCredentialsService;
@@ -68,11 +67,12 @@ public class EventServiceImplementation implements EventService {
         this.eventTicketService= eventTicketService;
         this.eventVisibilityService = eventVisibilityService;
         this.starringService =starringService;
+        this.eventCategoryService = eventCategoryService;
         this.cloudinaryUploadService= cloudinaryUploadServiceImpl;
     }
 
     public EventResponseDto changeToEventDto(Event event){
-//        return new EventResponseDto(event.getAccessToken(), event.getName(), event.getLocation(), event.getPublished_date(), event.getEntryFee(),event.getEventType().getTitle());
+//        return new EventResponseDto(event.getName(), event.getEventDate().;, event.getPublished_date(), event.getEntryFee(),event.getEventType().getTitle());
     return null;
     }
 
@@ -131,7 +131,7 @@ public class EventServiceImplementation implements EventService {
                 searchEventByFilterDto.getLocation(),
                 searchEventByFilterDto.getEvent_time(),
                 searchEventByFilterDto.getEvent_date(),
-                eventTypeService.getEventTypeByTitle(searchEventByFilterDto.getEvent_category())
+                eventCategoryService.getEventCategoryByName(searchEventByFilterDto.getEvent_category())
         );
 
         if(filterEventsList.isEmpty()) throw new ResourceNotFoundException("Searched event not found at the moment, you may like other events");
@@ -164,7 +164,7 @@ public class EventServiceImplementation implements EventService {
 
     //service method for adding new event
     @Override
-    public EventResponseDto addEvent(AddEventRequestDto addEventDto, MultipartFile coverImage) {
+    public Event addEvent(AddEventRequestDto addEventDto, MultipartFile coverImage) {
 
         boolean eventNameExists = eventRepository.existsByName(addEventDto.getEventName());
 
@@ -189,7 +189,7 @@ public class EventServiceImplementation implements EventService {
 
         User organizer = userService.getUserByUsername(username);
 
-        EventCategory eventType = eventTypeService.getEventTypeByTitle(addEventDto.ge)
+        EventCategory eventCategory = eventCategoryService.getEventCategoryByName(addEventDto.getEventCategory());
         boolean hasStarring= addEventDto.isHasStarring();
 
         Event savedEvent = saveEvent(
@@ -202,9 +202,11 @@ public class EventServiceImplementation implements EventService {
                         .aboutEvent(addEventDto.getAboutEvent())
                         .isPrivate(addEventDto.isPrivate())
                         .eventTicket(eventTicket)
+                        .eventVisibility(eventVisibility)
                         .eventOrganizer(organizer)
-                        .eventType(eve)
-        )
+                        .eventCategory(eventCategory)
+                        .build()
+        );
 
         if(hasStarring){
             starringService.saveStarring(addEventDto.getStarrings(), savedEvent);

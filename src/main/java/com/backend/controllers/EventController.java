@@ -76,7 +76,7 @@ public class EventController {
                                       @IsImage @RequestPart(value = "eventCoverPhoto" ,required = false)MultipartFile eventCoverPhoto){
 //        addEventDto.setPublished_date(LocalDate.now());
 
-        return new ResponseEntity<>(eventService.addEvent(addEventDto), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.addEvent(addEventDto, eventCoverPhoto), HttpStatus.OK);
     }
 
     @PostMapping("/addPromoCode")
