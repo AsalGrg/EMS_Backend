@@ -164,7 +164,7 @@ public class EventServiceImplementation implements EventService {
 
     //service method for adding new event
     @Override
-    public Event addEvent(AddEventRequestDto addEventDto, MultipartFile coverImage) {
+    public Event addEvent(AddEventRequestDto addEventDto) {
 
         boolean eventNameExists = eventRepository.existsByName(addEventDto.getEventName());
 
@@ -176,7 +176,7 @@ public class EventServiceImplementation implements EventService {
         //saving the event date details in the event date table
         EventDate eventDate = eventDateService.saveEventDate(addEventDto.getEventDateDetails());
 
-        String coverImageUrl = cloudinaryUploadService.uploadImage(coverImage, "Event Cover Photo");
+        String coverImageUrl = cloudinaryUploadService.uploadImage(addEventDto.getEventCoverPhoto(), "Event Cover Photo");
 
         EventTicket eventTicket= eventTicketService.saveEventTicket(addEventDto.getEventTicketDetails());
 

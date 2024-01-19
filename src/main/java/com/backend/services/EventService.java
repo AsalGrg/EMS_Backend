@@ -31,6 +31,6 @@ import java.util.List;
 
      Event saveEvent(Event event);
 
-     Event addEvent(AddEventRequestDto addEventDto, MultipartFile coverImage);
+     Event addEvent(AddEventRequestDto addEventDto);
 
 }

@@ -71,12 +71,12 @@ public class EventController {
         return ResponseEntity.ok(trendingEvents);
     }
 
-    @PostMapping("/addEvent")
-    public ResponseEntity<?> addEvent(@Valid @RequestPart("eventDetails") AddEventRequestDto addEventDto,
-                                      @IsImage @RequestPart(value = "eventCoverPhoto" ,required = false)MultipartFile eventCoverPhoto){
+    @PostMapping( path = "/addEvent"
+            , consumes = {"multipart/form-data"})
+    public ResponseEntity<?> addEvent(@Valid @ModelAttribute AddEventRequestDto addEventDto){
 //        addEventDto.setPublished_date(LocalDate.now());
 
-        return new ResponseEntity<>(eventService.addEvent(addEventDto, eventCoverPhoto), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.addEvent(addEventDto), HttpStatus.OK);
     }
 
     @PostMapping("/addPromoCode")
