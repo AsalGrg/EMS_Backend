@@ -4,9 +4,11 @@ package com.backend.dtos.addEvent;
 import com.backend.dtos.AddStarringDto;
 import com.backend.models.PromoCode;
 import com.backend.utils.ConditionalNotNull;
+import com.backend.utils.IsImage;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -18,8 +20,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 
+@Validated
 public class AddEventRequestDto {
 
+    @IsImage
+    private MultipartFile eventCoverPhoto;
 
     @NotNull(message = "Event name must be given")
     @NotEmpty(message = "Event name cannot be empty")
