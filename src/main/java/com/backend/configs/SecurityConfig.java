@@ -78,6 +78,7 @@ public class SecurityConfig{
                                 .requestMatchers("/verify-otp").permitAll()
                                 .requestMatchers("/become-vendor-requests").permitAll()
                                 .requestMatchers("/addEvent").permitAll()
+                                .requestMatchers("/check").permitAll()
 //                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
 //                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
 //                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())

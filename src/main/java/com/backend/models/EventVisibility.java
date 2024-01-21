@@ -20,7 +20,7 @@ public class EventVisibility {
     @Column(name = "event_access_password")
     private String eventAccessPassword;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "visibility_type_id")
     private VisibilityType visibilityType;
 }

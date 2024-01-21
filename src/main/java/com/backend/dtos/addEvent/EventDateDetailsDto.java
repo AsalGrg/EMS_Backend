@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,20 +18,20 @@ import java.time.LocalTime;
 
 public class EventDateDetailsDto {
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @NotNull(message = "Event start date is required")
-    @NotEmpty(message = "Event start date cannot be empty")
     private LocalDate eventStartDate;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     @NotNull(message = "Event start time is required")
-    @NotEmpty(message = "Event start time cannot be empty")
     private LocalTime eventStartTime;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @NotNull(message = "Event end date is required")
-    @NotEmpty(message = "Event end date cannot be empty")
     private LocalDate eventEndDate;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     @NotNull(message = "Event end time is required")
-    @NotEmpty(message = "Event end time cannot be empty")
     private LocalTime eventEndTime;
 
     private boolean displayStartTime;

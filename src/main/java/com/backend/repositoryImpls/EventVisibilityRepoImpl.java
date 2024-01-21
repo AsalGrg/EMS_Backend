@@ -4,6 +4,7 @@ import com.backend.models.EventVisibility;
 import com.backend.repositories.EventVisibilityRepository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +16,22 @@ public class EventVisibilityRepoImpl implements EventVisibilityRepository {
 
     @Override
     public EventVisibility saveEventVisibility(EventVisibility eventVisibility) {
-        Session session =sessionFactory.openSession();
-        return (EventVisibility) session.save(eventVisibility);
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            session.save(eventVisibility);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace(); // Handle the exception appropriately
+        } finally {
+            session.close();
+        }
+
+        return eventVisibility;
     }
 }

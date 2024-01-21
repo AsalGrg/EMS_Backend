@@ -21,7 +21,7 @@ public class EventTicket {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="ticket_type_id")
     private TicketType ticketType;
 

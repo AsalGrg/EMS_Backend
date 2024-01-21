@@ -1,9 +1,12 @@
 package com.backend.serviceImpls;
 
 import com.backend.dtos.AddPromoCodeDto;
+import com.backend.dtos.AddStarringDto;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
+import com.backend.dtos.addEvent.EventDateDetailsDto;
 import com.backend.dtos.addEvent.EventResponseDto;
+import com.backend.dtos.addEvent.EventTicketDetailsDto;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.*;
@@ -164,7 +167,7 @@ public class EventServiceImplementation implements EventService {
 
     //service method for adding new event
     @Override
-    public Event addEvent(AddEventRequestDto addEventDto) {
+    public Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails) {
 
         boolean eventNameExists = eventRepository.existsByName(addEventDto.getEventName());
 
@@ -174,19 +177,19 @@ public class EventServiceImplementation implements EventService {
         EventLocation eventLocation = eventLocationService.saveEventLocation(addEventDto.getLocationType(), addEventDto.getLocationName());
 
         //saving the event date details in the event date table
-        EventDate eventDate = eventDateService.saveEventDate(addEventDto.getEventDateDetails());
+        EventDate eventDate = eventDateService.saveEventDate(eventDateDetails);
 
         String coverImageUrl = cloudinaryUploadService.uploadImage(addEventDto.getEventCoverPhoto(), "Event Cover Photo");
 
-        EventTicket eventTicket= eventTicketService.saveEventTicket(addEventDto.getEventTicketDetails());
+        EventTicket eventTicket= eventTicketService.saveEventTicket(eventTicketDetails);
 
         EventVisibility eventVisibility = eventVisibilityService.saveEventVisibility(
                 addEventDto.getEventVisibilityType(), addEventDto.getEventAccessPassword()
         );
 
         //getting the current user userName
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
+//        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username= "Check User";//static for now
         User organizer = userService.getUserByUsername(username);
 
         EventCategory eventCategory = eventCategoryService.getEventCategoryByName(addEventDto.getEventCategory());
@@ -195,6 +198,7 @@ public class EventServiceImplementation implements EventService {
         Event savedEvent = saveEvent(
                 Event
                         .builder()
+                        .name(addEventDto.getEventName())
                         .eventLocation(eventLocation)
                         .eventDate(eventDate)
                         .eventCoverPage(coverImageUrl)
@@ -209,7 +213,7 @@ public class EventServiceImplementation implements EventService {
         );
 
         if(hasStarring){
-            starringService.saveStarring(addEventDto.getStarrings(), savedEvent);
+            starringService.saveStarring(addEventDto.getStarringImages(), addEventDto.getStarringNames(), savedEvent);
         }
 
 

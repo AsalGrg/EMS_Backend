@@ -2,9 +2,12 @@ package com.backend.controllers;
 
 
 import com.backend.dtos.AddPromoCodeDto;
+import com.backend.dtos.AddStarringDto;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.AddEventRequestDto;
+import com.backend.dtos.addEvent.EventDateDetailsDto;
 import com.backend.dtos.addEvent.EventResponseDto;
+import com.backend.dtos.addEvent.EventTicketDetailsDto;
 import com.backend.models.Event;
 import com.backend.services.EventService;
 import com.backend.utils.IsImage;
@@ -73,11 +76,38 @@ public class EventController {
 
     @PostMapping( path = "/addEvent"
             , consumes = {"multipart/form-data"})
-    public ResponseEntity<?> addEvent(@Valid @ModelAttribute AddEventRequestDto addEventDto){
-//        addEventDto.setPublished_date(LocalDate.now());
+    public ResponseEntity<?> addEvent(@Valid @RequestPart(name = "eventDetails") AddEventRequestDto addEventDto,
+                                      @Valid @RequestPart(name = "eventDateDetails")EventDateDetailsDto eventDateDetailsDto,
+                                      @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
+                                      @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto,
+                                      @RequestPart(name = "starringImages", required = false) List<MultipartFile> eventStarringPhotos,
+                                      @RequestPart(name = "starringNames", required = false) List<String> eventStarringNames){
 
-        return new ResponseEntity<>(eventService.addEvent(addEventDto), HttpStatus.OK);
+        addEventDto.setEventCoverPhoto(eventCoverImage);
+
+        if(!eventStarringNames.isEmpty() && !eventStarringPhotos.isEmpty()){
+            addEventDto.setStarringImages(eventStarringPhotos);
+            addEventDto.setStarringNames(eventStarringNames);
+        }
+
+        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto), HttpStatus.OK);
     }
+    @PostMapping( path = "/check"
+    ,consumes = {"multipart/form-data"})
+    public ResponseEntity<?> check(@Valid @RequestPart("eventDetails") AddEventRequestDto addEventDto,
+                                   @Valid @RequestPart(name = "eventDateDetails")EventDateDetailsDto eventDateDetailsDto,
+                                   @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto){
+//        addEventDto.setPublished_date(LocalDate.now());
+        return new ResponseEntity<>("Hello", HttpStatus.OK);
+    }
+
+//
+//    @PostMapping( path = "/addEvent"
+//            , consumes = {"multipart/form-data"})
+//    public ResponseEntity<?> addEvent(@Valid @ModelAttribute AddEventRequestDto addEventDto){
+////        addEventDto.setPublished_date(LocalDate.now());
+//        return new ResponseEntity<>(eventService.addEvent(addEventDto), HttpStatus.OK);
+//    }
 
     @PostMapping("/addPromoCode")
     public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto){

@@ -23,16 +23,12 @@ import java.util.List;
 @Validated
 public class AddEventRequestDto {
 
-    @IsImage
+//    @IsImage(message = "Valid cover image is required!")
     private MultipartFile eventCoverPhoto;
 
     @NotNull(message = "Event name must be given")
     @NotEmpty(message = "Event name cannot be empty")
     private String eventName;
-
-//    @NotNull(message = "Organizer detail must be given")
-//    @NotEmpty(message = "Organizer detail cannot be empty")
-//    private String organizerDetails;
 
     @NotNull(message = "Event category is required")
     @NotEmpty(message = "Event category cannot be empty")
@@ -43,13 +39,11 @@ public class AddEventRequestDto {
 
     private String locationName;
 
-
-    @NotNull(message = "Event date details are required")
-    @NotNull(message = "Event date details are required")
+//
+//    @NotNull(message = "Event date details are required")
+//    @NotNull(message = "Event date details are required")
     private EventDateDetailsDto eventDateDetails;
 
-    @NotNull(message = "Event ticket details are required")
-    @NotNull(message = "Event ticket details are required")
     private EventTicketDetailsDto eventTicketDetails;
 
 
@@ -59,10 +53,9 @@ public class AddEventRequestDto {
 
     private boolean hasStarring;
 
-    private List<AddStarringDto> starrings;
+    private List<MultipartFile> starringImages;
 
-//    private String
-
+    private List<String> starringNames;
 
     private boolean isPrivate;
 

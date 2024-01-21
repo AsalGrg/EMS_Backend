@@ -46,9 +46,8 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public Event saveEvent(Event event) {
         Session session= sessionFactory.openSession();
-        Event event1 = (Event) session.save(event);
-        session.close();
-        return event1;
+        session.save(event);
+        return event;
     }
 
     @Override

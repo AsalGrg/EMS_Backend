@@ -49,12 +49,12 @@ public class Event {
     @JoinColumn(name = "visibility_id")
     private EventVisibility eventVisibility;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "event_organizer_id")
     private User eventOrganizer;
 
-    @OneToOne
-    @JoinColumn(name = "event_cat_id")
+    @ManyToOne
+    @JoinColumn(name = "event_cat_id" )
     private EventCategory eventCategory;
 
 
