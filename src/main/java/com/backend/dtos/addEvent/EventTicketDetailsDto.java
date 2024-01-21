@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -27,26 +28,24 @@ public class EventTicketDetailsDto {
     private String ticketName;
 
     @NotNull(message = "Ticket quantity is required")
-    @NotEmpty(message = "Ticket quantity cannot be empty")
     private Integer ticketQuantity;
 
     @NotNull(message = "Ticket price is required")
-    @NotEmpty(message = "Ticket price cannot be empty")
     private Float ticketPrice;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @NotNull(message = "Sales start date is required")
-    @NotEmpty(message = "Sales start date cannot be empty")
     private LocalDate saleStartDate;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     @NotNull(message = "Sales start time is required")
-    @NotEmpty(message = "About event cannot be empty")
     private LocalTime saleStartTime;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @NotNull(message = "Sales end date is required")
-    @NotEmpty(message = "Sales end date cannot be empty")
     private LocalDate saleEndDate;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     @NotNull(message = "Sales end time is required")
-    @NotEmpty(message = "Sales end time cannot be empty")
     private LocalTime saleEndTime;
 }

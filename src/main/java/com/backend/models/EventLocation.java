@@ -20,7 +20,7 @@ public class EventLocation {
     @Column(name = "location_name")
     private String locationName;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "location_type_id")
     private LocationType locationType;
 }

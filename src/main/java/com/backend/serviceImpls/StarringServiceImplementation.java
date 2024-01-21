@@ -27,38 +27,67 @@ public class StarringServiceImplementation implements StarringService {
     }
 
     @Override
-    public void saveStarring(List<AddStarringDto> starrings, Event event) {
+    public void saveStarring(List<MultipartFile> starringsPhotos, List<String> starringNames, Event event) {
         EventStarring eventStarring= new EventStarring();
 
-        int i= 1;
-        for (AddStarringDto addStarring:
-             starrings) {
+//        int i= 1;
+//        for (AddStarringDto addStarring:
+//             starrings) {
+//
+//            if(i==1){
+//                eventStarring.setStarring1Name(addStarring.getStarringName());
+//                eventStarring.setStarring1Photo(uploadPhoto(addStarring.getStarringPhoto()));
+//            }
+//
+//            if(i==2){
+//                eventStarring.setStarring2Name(addStarring.getStarringName());
+//                eventStarring.setStarring2Photo(uploadPhoto(addStarring.getStarringPhoto()));
+//            }
+//
+//            if(i==3){
+//                eventStarring.setStarring3Name(addStarring.getStarringName());
+//                eventStarring.setStarring3Photo(uploadPhoto(addStarring.getStarringPhoto()));
+//            }
+//
+//            if(i==4){
+//                eventStarring.setStarring4Name(addStarring.getStarringName());
+//                eventStarring.setStarring4Photo(uploadPhoto(addStarring.getStarringPhoto()));
+//            }
+//
+//            if(i==5){
+//                eventStarring.setStarring5Name(addStarring.getStarringName());
+//                eventStarring.setStarring5Photo(uploadPhoto(addStarring.getStarringPhoto()));
+//            }
+//            i++;
+//        }
 
-            if(i==1){
-                eventStarring.setStarring1Name(addStarring.getStarringName());
-                eventStarring.setStarring1Photo(uploadPhoto(addStarring.getStarringPhoto()));
+
+        for (int index=0; index<=starringsPhotos.size(); index++){
+
+            if(index==0){
+                eventStarring.setStarring1Name(starringNames.get(index));
+                eventStarring.setStarring1Photo(uploadPhoto(starringsPhotos.get(index)));
             }
 
-            if(i==2){
-                eventStarring.setStarring2Name(addStarring.getStarringName());
-                eventStarring.setStarring2Photo(uploadPhoto(addStarring.getStarringPhoto()));
+            if(index==1){
+                eventStarring.setStarring2Name(starringNames.get(index));
+                eventStarring.setStarring2Photo(uploadPhoto(starringsPhotos.get(index)));
             }
 
-            if(i==3){
-                eventStarring.setStarring3Name(addStarring.getStarringName());
-                eventStarring.setStarring3Photo(uploadPhoto(addStarring.getStarringPhoto()));
+            if(index==2){
+                eventStarring.setStarring3Name(starringNames.get(index));
+                eventStarring.setStarring3Photo(uploadPhoto(starringsPhotos.get(index)));
             }
 
-            if(i==4){
-                eventStarring.setStarring4Name(addStarring.getStarringName());
-                eventStarring.setStarring4Photo(uploadPhoto(addStarring.getStarringPhoto()));
+            if(index==3){
+                eventStarring.setStarring4Name(starringNames.get(index));
+                eventStarring.setStarring4Photo(uploadPhoto(starringsPhotos.get(index)));
             }
 
-            if(i==5){
-                eventStarring.setStarring5Name(addStarring.getStarringName());
-                eventStarring.setStarring5Photo(uploadPhoto(addStarring.getStarringPhoto()));
+            if(index==4){
+                eventStarring.setStarring5Name(starringNames.get(index));
+                eventStarring.setStarring5Photo(uploadPhoto(starringsPhotos.get(index)));
             }
-            i++;
         }
 
         eventStarring.setEvent(event);
