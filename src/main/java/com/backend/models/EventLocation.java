@@ -23,4 +23,7 @@ public class EventLocation {
     @ManyToOne
     @JoinColumn(name = "location_type_id")
     private LocationType locationType;
+
+    @Column(name = "is_physical")
+    private boolean isPhysical;
 }
