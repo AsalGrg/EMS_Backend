@@ -4,10 +4,7 @@ package com.backend.controllers;
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.AddStarringDto;
 import com.backend.dtos.SearchEventByFilterDto;
-import com.backend.dtos.addEvent.AddEventRequestDto;
-import com.backend.dtos.addEvent.EventDateDetailsDto;
-import com.backend.dtos.addEvent.EventResponseDto;
-import com.backend.dtos.addEvent.EventTicketDetailsDto;
+import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
 import com.backend.services.EventService;
 import com.backend.utils.IsImage;
@@ -80,17 +77,19 @@ public class EventController {
                                       @Valid @RequestPart(name = "eventDateDetails")EventDateDetailsDto eventDateDetailsDto,
                                       @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
                                       @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto,
-                                      @RequestPart(name = "starringImages", required = false) List<MultipartFile> eventStarringPhotos,
-                                      @RequestPart(name = "starringNames", required = false) List<String> eventStarringNames){
+                                      @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
+                                      @RequestPart(name = "starring1Photo", required = false) @IsImage MultipartFile starring1Photo,
+                                      @RequestPart(name = "starring2Photo", required = false) @IsImage MultipartFile starring2Photo,
+                                      @RequestPart(name = "starring3Photo", required = false) @IsImage MultipartFile starring3Photo,
+                                      @RequestPart(name = "starring4Photo", required = false) @IsImage MultipartFile starring4Photo,
+                                      @RequestPart(name = "starring5Photo", required = false) @IsImage MultipartFile starring5Photo
+                                      ){
 
         addEventDto.setEventCoverPhoto(eventCoverImage);
 
-        if(!eventStarringNames.isEmpty() && !eventStarringPhotos.isEmpty()){
-            addEventDto.setStarringImages(eventStarringPhotos);
-            addEventDto.setStarringNames(eventStarringNames);
-        }
+//        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto), HttpStatus.OK);
 
-        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto), HttpStatus.OK);
+        return  ResponseEntity.ok("Donneeeee");
     }
     @PostMapping( path = "/check"
     ,consumes = {"multipart/form-data"})

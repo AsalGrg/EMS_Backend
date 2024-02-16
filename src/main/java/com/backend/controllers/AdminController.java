@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @CrossOrigin("*")
-//@RequestMapping("/admin")
 public class AdminController {
 
 
