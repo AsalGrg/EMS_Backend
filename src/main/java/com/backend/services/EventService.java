@@ -4,10 +4,7 @@ import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.AddStarringDto;
 import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.SearchEventByFilterDto;
-import com.backend.dtos.addEvent.AddEventRequestDto;
-import com.backend.dtos.addEvent.EventDateDetailsDto;
-import com.backend.dtos.addEvent.EventResponseDto;
-import com.backend.dtos.addEvent.EventTicketDetailsDto;
+import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
 import com.backend.models.PromoCode;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +31,6 @@ import java.util.List;
 
      Event saveEvent(Event event);
 
-     Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails);
+     Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails, EventStarringDetails eventStarringDetails);
 
 }

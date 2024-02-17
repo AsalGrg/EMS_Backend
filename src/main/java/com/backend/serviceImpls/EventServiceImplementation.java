@@ -3,10 +3,7 @@ package com.backend.serviceImpls;
 import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.AddStarringDto;
 import com.backend.dtos.SearchEventByFilterDto;
-import com.backend.dtos.addEvent.AddEventRequestDto;
-import com.backend.dtos.addEvent.EventDateDetailsDto;
-import com.backend.dtos.addEvent.EventResponseDto;
-import com.backend.dtos.addEvent.EventTicketDetailsDto;
+import com.backend.dtos.addEvent.*;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.*;
@@ -167,7 +164,7 @@ public class EventServiceImplementation implements EventService {
 
     //service method for adding new event
     @Override
-    public Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails) {
+    public Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails, EventStarringDetails eventStarringDetails) {
 
         boolean eventNameExists = eventRepository.existsByName(addEventDto.getEventName());
 
@@ -213,7 +210,7 @@ public class EventServiceImplementation implements EventService {
         );
 
         if(hasStarring){
-            starringService.saveStarring(addEventDto.getStarringImages(), addEventDto.getStarringNames(), savedEvent);
+            starringService.saveStarring(eventStarringDetails, savedEvent);
         }
 
 

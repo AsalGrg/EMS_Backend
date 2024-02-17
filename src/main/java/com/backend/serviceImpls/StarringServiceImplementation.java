@@ -1,22 +1,29 @@
 package com.backend.serviceImpls;
 
 import com.backend.dtos.AddStarringDto;
+import com.backend.dtos.addEvent.EventStarringDetails;
+import com.backend.exceptions.InternalServerError;
 import com.backend.models.Event;
 import com.backend.models.EventStarring;
 import com.backend.repositories.StarringRepository;
 import com.backend.services.CloudinaryUploadService;
 import com.backend.services.StarringService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 @Service
+@Slf4j
 public class StarringServiceImplementation implements StarringService {
 
     private StarringRepository starringRepository;
 
     private CloudinaryUploadService cloudinaryUploadService;
+
 
     public StarringServiceImplementation(
             StarringRepository starringRepository,
@@ -27,70 +34,40 @@ public class StarringServiceImplementation implements StarringService {
     }
 
     @Override
-    public void saveStarring(List<MultipartFile> starringsPhotos, List<String> starringNames, Event event) {
+    public void saveStarring(EventStarringDetails eventStarringDetails, Event event) {
         EventStarring eventStarring= new EventStarring();
 
-//        int i= 1;
-//        for (AddStarringDto addStarring:
-//             starrings) {
-//
-//            if(i==1){
-//                eventStarring.setStarring1Name(addStarring.getStarringName());
-//                eventStarring.setStarring1Photo(uploadPhoto(addStarring.getStarringPhoto()));
-//            }
-//
-//            if(i==2){
-//                eventStarring.setStarring2Name(addStarring.getStarringName());
-//                eventStarring.setStarring2Photo(uploadPhoto(addStarring.getStarringPhoto()));
-//            }
-//
-//            if(i==3){
-//                eventStarring.setStarring3Name(addStarring.getStarringName());
-//                eventStarring.setStarring3Photo(uploadPhoto(addStarring.getStarringPhoto()));
-//            }
-//
-//            if(i==4){
-//                eventStarring.setStarring4Name(addStarring.getStarringName());
-//                eventStarring.setStarring4Photo(uploadPhoto(addStarring.getStarringPhoto()));
-//            }
-//
-//            if(i==5){
-//                eventStarring.setStarring5Name(addStarring.getStarringName());
-//                eventStarring.setStarring5Photo(uploadPhoto(addStarring.getStarringPhoto()));
-//            }
-//            i++;
-//        }
+
+        for (int index=1; index<5; index++) {
+
+            try {
+                Method methodDet = eventStarringDetails.getClass().getMethod("getStarring" + index + "Photo");
+
+                MultipartFile starringImage = (MultipartFile) methodDet.invoke(eventStarringDetails);
+
+                if(starringImage==null){
+                    continue;
+                }
+                log.info("jjjdfjdfjdfjdfjjdfjdfjdf");
+
+                Method methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Photo", String.class);
+                methodEventStarring.invoke(eventStarring, uploadPhoto(starringImage));
+
+                methodDet = eventStarringDetails.getClass().getMethod("getStarring" + index + "Name");
+                methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Name", String.class);
+                String starringName= (String) methodDet.invoke(eventStarringDetails);
+                methodEventStarring.invoke(eventStarring, starringName);
+
+                eventStarring.setEvent(event);
+
+                log.info("dfdfdfdf: "+ eventStarringDetails.getStarring2Name());
 
 
-        for (int index=0; index<=starringsPhotos.size(); index++){
-
-            if(index==0){
-                eventStarring.setStarring1Name(starringNames.get(index));
-                eventStarring.setStarring1Photo(uploadPhoto(starringsPhotos.get(index)));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
 
-            if(index==1){
-                eventStarring.setStarring2Name(starringNames.get(index));
-                eventStarring.setStarring2Photo(uploadPhoto(starringsPhotos.get(index)));
-            }
-
-            if(index==2){
-                eventStarring.setStarring3Name(starringNames.get(index));
-                eventStarring.setStarring3Photo(uploadPhoto(starringsPhotos.get(index)));
-            }
-
-            if(index==3){
-                eventStarring.setStarring4Name(starringNames.get(index));
-                eventStarring.setStarring4Photo(uploadPhoto(starringsPhotos.get(index)));
-            }
-
-            if(index==4){
-                eventStarring.setStarring5Name(starringNames.get(index));
-                eventStarring.setStarring5Photo(uploadPhoto(starringsPhotos.get(index)));
-            }
         }
-
-        eventStarring.setEvent(event);
         starringRepository.saveStarring(eventStarring);
     }
 
