@@ -2,10 +2,10 @@ package com.backend.controllers;
 
 
 import com.backend.dtos.AddPromoCodeDto;
-import com.backend.dtos.AddStarringDto;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
+import com.backend.models.EventPhysicalLocationDetails;
 import com.backend.services.EventService;
 import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
@@ -70,6 +70,13 @@ public class EventController {
         return new ResponseEntity<>(filteredEvents, HttpStatus.OK);
     }
 
+    @GetMapping("/search/{eventTitle}/{eventVenue}")
+    public ResponseEntity<?> getEventsBySearch (@PathVariable("eventTitle") String eventTitle, @PathVariable("eventVenue") String eventVenue){
+
+        List<EventResponseDto> searchedEvents= eventService.getEventsBySearch(eventTitle, eventVenue);
+        return new ResponseEntity<>(searchedEvents, HttpStatus.OK);
+    }
+
     @GetMapping("/trendingEvents")
     public ResponseEntity<?> getTrendingEvents(){
         List<EventResponseDto> trendingEvents = eventService.getTrendingEvents();
@@ -84,6 +91,7 @@ public class EventController {
                                       @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
                                       @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto,
                                       @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
+                                      @Valid @RequestPart(name = "eventPhysicalLocationDetails", required = false) EventPhysicalLocationDetailsDto eventPhysicalLocationDetails,
                                       @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
                                       @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
                                       @RequestPart(name = "starring3Photo", required = false) MultipartFile starring3Photo,
@@ -94,57 +102,21 @@ public class EventController {
         addEventDto.setEventCoverPhoto(eventCoverImage);
 
 //        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto), HttpStatus.OK);
-        MultipartFile[] multipartFiles= {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
-        for (int i =0; i<multipartFiles.length; i++){
-            if(multipartFiles[i]!=null){
-                 Method method= eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", MultipartFile.class);
+        MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
+        for (int i = 0; i < multipartFiles.length; i++) {
+            if (multipartFiles[i] != null) {
+                Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", MultipartFile.class);
                 method.invoke(eventStarringDetails, multipartFiles[i]);
             }
         }
-        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto, eventStarringDetails), HttpStatus.OK);
-//        log.info("dsldld"+ eventStarringDetails.getStarring1Name());
-//        return  ResponseEntity.ok("");
+        return new ResponseEntity<>(eventService.addEvent(addEventDto, eventTicketDetailsDto, eventDateDetailsDto, eventStarringDetails,eventPhysicalLocationDetails), HttpStatus.OK);
     }
-    @PostMapping( path = "/check"
-    ,consumes = {"multipart/form-data"})
-    public ResponseEntity<?> check(@Valid @RequestPart("eventDetails") AddEventRequestDto addEventDto,
-                                   @Valid @RequestPart(name = "eventDateDetails")EventDateDetailsDto eventDateDetailsDto,
-                                   @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto){
-//        addEventDto.setPublished_date(LocalDate.now());
-        return new ResponseEntity<>("Hello", HttpStatus.OK);
-    }
-
-//
-//    @PostMapping( path = "/addEvent"
-//            , consumes = {"multipart/form-data"})
-//    public ResponseEntity<?> addEvent(@Valid @ModelAttribute AddEventRequestDto addEventDto){
-////        addEventDto.setPublished_date(LocalDate.now());
-//        return new ResponseEntity<>(eventService.addEvent(addEventDto), HttpStatus.OK);
-//    }
-
     @PostMapping("/addPromoCode")
-    public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto){
+    public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto) {
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
 
         eventService.addPromoCode(promoCodeDto);
 
-        return new ResponseEntity<>("Promo code Added Successfully",HttpStatus.OK);
+        return new ResponseEntity<>("Promo code Added Successfully", HttpStatus.OK);
     }
-
-
-//    @PostMapping("/event-access-request")
-//    public ResponseEntity<?> getEventAccessRequests(){
-//       List<EventAccessRequestsView> eventAccessRequestsViews=  eventService.getEventAccessRequests((String) httpSession.getAttribute("CurrentUser"));
-//
-//       return new ResponseEntity<>(eventAccessRequestsViews, HttpStatus.OK);
-//    }
-
-//    @PostMapping("/make-event-access-request/{accessToken}")
-//    public ResponseEntity<?> sendEventAccessRequest(@PathVariable("accessToken") String accessToken){
-//        String currentUser= (String) httpSession.getAttribute("CurrentUser");
-//
-//        eventService.makeEventAccessRequest(currentUser, accessToken);
-//
-//        return new ResponseEntity<>("Your request has been collected", HttpStatus.OK);
-//    }
 }

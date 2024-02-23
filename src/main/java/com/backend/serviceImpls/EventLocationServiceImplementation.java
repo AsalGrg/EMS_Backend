@@ -23,13 +23,25 @@ public class EventLocationServiceImplementation implements EventLocationService 
 
     @Override
     public EventLocation saveEventLocation(String locationType, String eventLocation) {
-
+        EventLocation eventLocationObj;
+        if(locationType.equals("online")){
+            eventLocationObj=EventLocation.
+                    builder()
+                    .locationName(eventLocation)
+                    .locationType(locationTypeService.getLocationTypeByName(locationType))
+                    .isPhysical(false)
+                    .build();
+        }
+        else {
+            eventLocationObj=EventLocation.
+                    builder()
+                    .locationName(eventLocation)
+                    .locationType(locationTypeService.getLocationTypeByName(locationType))
+                    .isPhysical(true)
+                    .build();
+        }
         return eventLocationRepository.saveEventLocation(
-                EventLocation.
-                        builder()
-                        .locationName(eventLocation)
-                        .locationType(locationTypeService.getLocationTypeByName(locationType))
-                        .build()
+                eventLocationObj
         );
     }
 }
