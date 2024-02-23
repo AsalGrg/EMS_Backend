@@ -48,7 +48,6 @@ public class StarringServiceImplementation implements StarringService {
                 if(starringImage==null){
                     continue;
                 }
-                log.info("jjjdfjdfjdfjdfjjdfjdfjdf");
 
                 Method methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Photo", String.class);
                 methodEventStarring.invoke(eventStarring, uploadPhoto(starringImage));

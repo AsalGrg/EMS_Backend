@@ -108,6 +108,24 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
+    public List<Event> getOnlineEvents(String eventTitle) {
+        Session session= sessionFactory.openSession();
+        Query<Event> eventQuery= session.createQuery("FROM Event er WHERE er.eventLocation.locationType.locationTypeTitle='online' AND er.name=:eventTitle", Event.class);
+        eventQuery.setParameter("eventTitle", eventTitle);
+        List<Event> events = eventQuery.getResultList();
+        return events;
+    }
+
+    @Override
+    public List<Event> getPhysicalEvents(String eventTitle, String eventCountry) {
+        Session session = sessionFactory.openSession();
+        Query<Event> eventQuery= session.createQuery("FROM  Event er JOIN event_physical_location_details epld ON er.eventLocation.id= epld.eventLocation.id where er.eventLocation.locationType.locationTypeTitle= 'venue' AND epld.country =:eventCountry AND er.name= :eventTitle", Event.class);
+        eventQuery.setParameter("eventTitle", eventTitle);
+        eventQuery.setParameter("eventCountry", eventCountry);
+        return eventQuery.getResultList();
+    }
+
+    @Override
     public boolean existsByName(String name) {
         Session session= sessionFactory.openSession();
 

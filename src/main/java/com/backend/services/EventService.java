@@ -17,6 +17,10 @@ import java.util.List;
 
     List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto);
 
+     List<EventResponseDto> getEventsBySearch(String eventTitle, String eventVenue);
+
+     List<Event> getOnlineEventsByTitle(String eventTitle);
+
      List<EventResponseDto> getTrendingEvents();
 
      void addPromoCode(AddPromoCodeDto promoCodeDto);
@@ -31,6 +35,6 @@ import java.util.List;
 
      Event saveEvent(Event event);
 
-     Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails, EventStarringDetails eventStarringDetails);
+     Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails, EventStarringDetails eventStarringDetails, EventPhysicalLocationDetailsDto eventPhysicalLocationDetailsDto);
 
 }

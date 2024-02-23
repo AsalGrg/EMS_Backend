@@ -44,6 +44,8 @@ public class EventServiceImplementation implements EventService {
 
     private  StarringService starringService;
 
+    private EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService;
+
     private final CloudinaryUploadService cloudinaryUploadService;
 
 
@@ -55,7 +57,8 @@ public class EventServiceImplementation implements EventService {
              EventLocationService eventLocationService, EventDateService eventDateService,
              EventTicketService eventTicketService, EventVisibilityService eventVisibilityService,
              EventCategoryService eventCategoryService,
-             StarringService starringService,RoleService roleService, CloudinaryUploadService cloudinaryUploadServiceImpl){
+             StarringService starringService,RoleService roleService, CloudinaryUploadService cloudinaryUploadServiceImpl,
+             EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService){
 
         this.eventRepository= eventRepository;
         this.userService= userService;
@@ -69,11 +72,31 @@ public class EventServiceImplementation implements EventService {
         this.starringService =starringService;
         this.eventCategoryService = eventCategoryService;
         this.cloudinaryUploadService= cloudinaryUploadServiceImpl;
+        this.eventPhysicalLocationDetailsService= eventPhysicalLocationDetailsService;
     }
 
-    public EventResponseDto changeToEventDto(Event event){
+    public EventResponseDto changeToEventDto(Event event, EventPhysicalLocationDetails physicalLocationDetails){
 //        return new EventResponseDto(event.getName(), event.getEventDate().;, event.getPublished_date(), event.getEntryFee(),event.getEventType().getTitle());
-    return null;
+        if(physicalLocationDetails==null) {
+            return EventResponseDto.builder().
+                    eventName(event.getName())
+                    .startDate(event.getEventDate().getEventStartDate())
+                    .endDate(event.getEventDate().getEventEndDate())
+                    .category(event.getEventCategory().getTitle())
+                    .ticketType(event.getEventTicket().getTicketType().getTitle())
+                    .ticketPrice(event.getEventTicket().getTicketPrice())
+                    .build();
+        }
+        return EventResponseDto.builder().
+                eventName(event.getName())
+                .startDate(event.getEventDate().getEventStartDate())
+                .endDate(event.getEventDate().getEventEndDate())
+                .category(event.getEventCategory().getTitle())
+                .ticketType(event.getEventTicket().getTicketType().getTitle())
+                .ticketPrice(event.getEventTicket().getTicketPrice())
+                .country(physicalLocationDetails.getCountry())
+                .location_display_name(physicalLocationDetails.getDisplayName())
+                .build();
     }
 
     @Override
@@ -139,10 +162,49 @@ public class EventServiceImplementation implements EventService {
         List<EventResponseDto> filteredEventsView = new ArrayList<>();
 
         for(Event event: filterEventsList){
-            filteredEventsView.add(changeToEventDto(event));
+            filteredEventsView.add(changeToEventDto(event, null));
         }
 
         return filteredEventsView;
+    }
+
+    @Override
+    public List<EventResponseDto> getEventsBySearch(String eventTitle, String eventVenue) {
+
+        if(eventVenue.equals("online")){
+
+            List<Event> onlineEvents = getOnlineEventsByTitle(eventTitle);
+            List<EventResponseDto> onlineEventsResponse = new ArrayList<>();
+            if(onlineEvents!=null){
+                for (Event each : onlineEvents){
+                    onlineEventsResponse.add(changeToEventDto(each, null));
+                }
+            }
+
+            return onlineEventsResponse;
+        }
+
+        List<Event> physicalEvents = eventRepository.getPhysicalEvents(eventTitle, eventVenue);
+        List<EventResponseDto> physicalEventsResponse= new ArrayList<>();
+
+        if(physicalEvents!=null){
+            for(Event each: physicalEvents){
+                physicalEventsResponse.add(changeToEventDto(each,getEventPhysicalLocationDetails(each.getEventLocation())));
+            }
+        }
+        return physicalEventsResponse;
+    }
+
+    private EventPhysicalLocationDetails getEventPhysicalLocationDetails(EventLocation eventLocation){
+        return  eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(eventLocation);
+    }
+    @Override
+    public List<Event> getOnlineEventsByTitle(String eventTitle) {
+
+        List<Event> onlineEvents = new ArrayList<>();
+
+        eventRepository.getOnlineEvents(eventTitle);
+        return null;
     }
 
     //service handler method to get the trending events
@@ -154,7 +216,7 @@ public class EventServiceImplementation implements EventService {
         List<EventResponseDto> allTrendingEventsView= new ArrayList<>();
 
         for(Event each: allTrendingEvents){
-            allTrendingEventsView.add(changeToEventDto(each));
+            allTrendingEventsView.add(changeToEventDto(each,null));
         }
 
         return allTrendingEventsView;
@@ -164,7 +226,9 @@ public class EventServiceImplementation implements EventService {
 
     //service method for adding new event
     @Override
-    public Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails, EventStarringDetails eventStarringDetails) {
+    public Event addEvent(
+            AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails,
+            EventStarringDetails eventStarringDetails, EventPhysicalLocationDetailsDto eventPhysicalLocationDetailsDto) {
 
         boolean eventNameExists = eventRepository.existsByName(addEventDto.getEventName());
 
@@ -211,6 +275,9 @@ public class EventServiceImplementation implements EventService {
 
         if(hasStarring){
             starringService.saveStarring(eventStarringDetails, savedEvent);
+        }
+        if(eventLocation.getLocationType().getLocationTypeTitle().equals("venue")){
+            eventPhysicalLocationDetailsService.savePhysicalLocationDetails(eventPhysicalLocationDetailsDto, eventLocation);
         }
 
 

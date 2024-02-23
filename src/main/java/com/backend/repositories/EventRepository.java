@@ -28,6 +28,10 @@ public interface EventRepository {
 
     List<Event> getTrendingEvents(LocalDate date);
 
+    List<Event> getOnlineEvents(String eventTitle);
+
+    List<Event> getPhysicalEvents(String eventTitle, String eventCountry);
+
     boolean existsByName(String name);
 //
 //    List<Event> findByLocationAndEventTimeAndEventDateAndEventTypeAndIsAccepted(String location, Time eventTime, LocalDate eventDate, EventType eventType, boolean isAccepted);
