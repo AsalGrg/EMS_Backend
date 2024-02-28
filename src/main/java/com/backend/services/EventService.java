@@ -6,6 +6,7 @@ import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
+import com.backend.models.EventPhysicalLocationDetails;
 import com.backend.models.PromoCode;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,7 @@ import java.util.List;
  public interface EventService{
 
     Event getEventById(int id);
+
 
     List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto);
 

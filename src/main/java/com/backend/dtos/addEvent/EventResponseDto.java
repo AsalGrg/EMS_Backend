@@ -14,11 +14,14 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class EventResponseDto {
 
+    private String eventCoverImgUrl;
     private String eventName;
     private LocalDate startDate;
     private LocalDate endDate;
     private String category;
     private String location_display_name;
+    private double lat;
+    private double lon;
     private String country;
     private String ticketType;
     private double ticketPrice;

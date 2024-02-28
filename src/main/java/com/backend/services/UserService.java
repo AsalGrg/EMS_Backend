@@ -5,6 +5,8 @@ import com.backend.dtos.login.LoginUserDto;
 import com.backend.dtos.register.RegisterResponse;
 import com.backend.dtos.register.RegisterUserDto;
 import com.backend.dtos.register.VerifyOtpRequest;
+import com.backend.dtos.user.UserLoggedInSnippetResponse;
+import com.backend.dtos.user.UserProfileDetailsResponse;
 import com.backend.models.User;
 
 public interface UserService {
@@ -20,5 +22,9 @@ public interface UserService {
     User getUserByUsernameOrEmail(String usernameOrEmail);
 
     User saveUser(User user);
+
+    UserLoggedInSnippetResponse getUserDetails();
+
+    UserProfileDetailsResponse getUserProfile();
 
 }
