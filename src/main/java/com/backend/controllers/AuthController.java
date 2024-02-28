@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 @Validated
 //@RequestMapping("user/auth")
 public class AuthController {
@@ -41,15 +41,7 @@ public class AuthController {
                                           //thinking of giving a default image, if not included.
 //                                          @RequestPart("userDp") @IsImage MultipartFile userDp)
     {
-
-//        registerUser.setUserDp(userDp);
-
         RegisterResponse response = userService.registerUser(registerUser);
-
-
-//        if(user!=null){
-//            httpSession.setAttribute("CurrentUser", user.getUsername());
-//        }
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -64,27 +56,23 @@ public class AuthController {
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginUserDto loginUser, HttpSession httpSession){
         LoginRegisterResponse response= userService.loginUser(loginUser);
 
-//        if(user!=null){
-//            httpSession.setAttribute("CurrentUser", user.getUsername());
-//        }
-
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/user/loggedInSnippet")
+    public ResponseEntity<?> getUserLoggedInState(){
+        return new ResponseEntity<>(userService.getUserDetails(), HttpStatus.OK);
+    }
+
+    @GetMapping("/user/profile")
+    public ResponseEntity<?> getUserDetails(){
+        userService.getUserDetails();
+
+        return new ResponseEntity<>(userService.getUserProfile(), HttpStatus.OK);
     }
 
 
 
     //just for testing purposes only, to be removed in the future
-//    @PostMapping("/admin-signup")
-//    public ResponseEntity<?> signUpAdmin(@Valid @RequestBody RegisterUserDto registerUserDto, HttpSession httpSession){
-//
-//        LoginRegisterResponse response= userService.registerAdmin(registerUserDto);
-////
-////        if(user!=null){
-////            httpSession.setAttribute("CurrentUser", user.getUsername());
-////        }
-//
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//
-//    }
 
 }

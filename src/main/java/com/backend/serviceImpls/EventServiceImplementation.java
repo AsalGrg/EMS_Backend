@@ -80,6 +80,7 @@ public class EventServiceImplementation implements EventService {
         if(physicalLocationDetails==null) {
             return EventResponseDto.builder().
                     eventName(event.getName())
+                    .eventCoverImgUrl(event.getEventCoverPage())
                     .startDate(event.getEventDate().getEventStartDate())
                     .endDate(event.getEventDate().getEventEndDate())
                     .category(event.getEventCategory().getTitle())
@@ -89,6 +90,7 @@ public class EventServiceImplementation implements EventService {
         }
         return EventResponseDto.builder().
                 eventName(event.getName())
+                .eventCoverImgUrl(event.getEventCoverPage())
                 .startDate(event.getEventDate().getEventStartDate())
                 .endDate(event.getEventDate().getEventEndDate())
                 .category(event.getEventCategory().getTitle())
@@ -96,6 +98,8 @@ public class EventServiceImplementation implements EventService {
                 .ticketPrice(event.getEventTicket().getTicketPrice())
                 .country(physicalLocationDetails.getCountry())
                 .location_display_name(physicalLocationDetails.getDisplayName())
+                .lat(physicalLocationDetails.getLat())
+                .lon(physicalLocationDetails.getLon())
                 .build();
     }
 

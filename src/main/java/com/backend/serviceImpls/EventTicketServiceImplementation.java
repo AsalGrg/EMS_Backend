@@ -28,6 +28,7 @@ public class EventTicketServiceImplementation implements EventTicketService {
                 EventTicket
                         .builder()
                         .ticketType(ticketTypeService.findTicketTypeByName(eventTicketDetailsDto.getTicketType()))
+                        .ticketName(eventTicketDetailsDto.getTicketName())
                         .ticketPrice(eventTicketDetailsDto.getTicketPrice())
                         .ticketQuantity(eventTicketDetailsDto.getTicketQuantity())
                         .ticketStartDate(eventTicketDetailsDto.getSaleStartDate())

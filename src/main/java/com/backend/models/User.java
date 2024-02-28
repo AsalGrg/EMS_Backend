@@ -4,6 +4,7 @@ package com.backend.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -22,6 +24,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "user")
+@Slf4j
 public class User implements UserDetails {
 
     @Id
@@ -54,19 +57,18 @@ public class User implements UserDetails {
     private boolean isVerified;
 
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles" , joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<Role>  userRoles;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<SimpleGrantedAuthority> grantedAuthorities= new ArrayList<>();
-
-        userRoles.forEach(
-                role -> {grantedAuthorities.add(new SimpleGrantedAuthority(role.getTitle()));
-                }
-        );
-        return grantedAuthorities;
+        var authorities = userRoles
+                .stream()
+                .peek(role -> log.info("Role: "+ role.getTitle()))
+                .map(permission -> new SimpleGrantedAuthority(permission.getTitle()))
+                .collect(Collectors.toList());
+        return authorities;
     }
 
     @Override

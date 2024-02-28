@@ -25,8 +25,12 @@ public class EventTicket {
     @JoinColumn(name="ticket_type_id")
     private TicketType ticketType;
 
-    @Column(name = "ticket_name")
+    @Column(name = "ticket_price")
     private double ticketPrice;
+
+    @Column(name = "ticket_name")
+    private String ticketName;
+
 
     @Column(name = "ticket_quantity")
     private int ticketQuantity;

@@ -4,9 +4,11 @@ import com.backend.models.EventVisibility;
 import com.backend.repositories.EventVisibilityRepository;
 import com.backend.services.EventVisibilityService;
 import com.backend.services.VisibilityTypeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class EventVisibilityServiceImplementation implements EventVisibilityService {
 
     private EventVisibilityRepository eventVisibilityRepository;
@@ -24,6 +26,7 @@ public class EventVisibilityServiceImplementation implements EventVisibilityServ
     @Override
     public EventVisibility saveEventVisibility(String eventVisibilityType, String eventAccessPassword) {
 
+        log.info(eventVisibilityType);
         return eventVisibilityRepository.saveEventVisibility(
                 EventVisibility
                         .builder()

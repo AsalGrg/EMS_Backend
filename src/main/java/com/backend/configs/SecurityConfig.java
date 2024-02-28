@@ -1,10 +1,16 @@
 package com.backend.configs;
 
 import com.backend.serviceImpls.UserServiceImplementation;
+import jakarta.servlet.DispatcherType;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,21 +19,49 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
-
+@EnableMethodSecurity
 
 public class SecurityConfig{
 
-    private final UserServiceImplementation userServiceImplementation;
+    private static final String[] ADMIN_ROUTES = {
+            "/api/v1/admin/**",
+            "/admin/**"
+    };
+    private static final String[] AUTH_ROUTES = {
+            "/user",
+            "/user/loggedInSnippet",
+            "/user/profile"
+    };
 
-    private final PasswordEncoder passwordEncoder;
+    private static final String[] PUBLIC_ROUTES = {
+            "/register",
+            "/verify-otp",
+            "/login",
+            "/search/{eventTitle}/{eventVenue}"
+    };
+    private JwtFilter jwtAuthFilter;
 
-    private final JwtFilter jwtAuthFilter;
+    private AuthenticationProvider authenticationProvider;
 
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+
+    @Autowired
+    public SecurityConfig(
+            AuthenticationProvider authenticationProvider,
+            JwtFilter jwtAuthFilter
+                          ){
+        this.authenticationProvider= authenticationProvider;
+        this.jwtAuthFilter= jwtAuthFilter;
+    }
+
 
     public SecurityConfig(
             UserServiceImplementation userServiceImplementation,
@@ -37,76 +71,31 @@ public class SecurityConfig{
     ){
         this.jwtAuthenticationEntryPoint= jwtAuthenticationEntryPoint;
         this.jwtAuthFilter= jwtFilter;
-        this.userServiceImplementation= userServiceImplementation;
-        this.passwordEncoder= passwordEncoder;
     }
-
-//
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity https) throws Exception {
-//
-//        https.
-//                csrf(AbstractHttpConfigurer::disable)
-//                .cors(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(
-//                        authHttpRequest-> authHttpRequest.requestMatchers("/register").permitAll()
-//                                .requestMatchers("/login").permitAll()
-////                                .requestMatchers("").authenticated()
-////                                .requestMatchers("").hasAnyAuthority("ADMIN")
-////                                .requestMatchers("").hasAnyRole("ADMIN")
-//                                .anyRequest().authenticated()
-//                )
-//                .sessionManagement(
-//                        session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                )
-//                .authenticationProvider(daoAuthenticationProvider())
-//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-//                .exceptionHandling(expHandling-> expHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint));
-//
-//        return https.build();
-//    }
-//
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+        corsConfiguration.setAllowedOrigins(List.of("*"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PUT","OPTIONS","PATCH", "DELETE"));
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setExposedHeaders(List.of("Authorization"));
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/register")
-                                .permitAll()
-                                .requestMatchers("/login").permitAll()
-                                .requestMatchers("/verify-otp").permitAll()
-                                .requestMatchers("/become-vendor-requests").permitAll()
-                                .requestMatchers("/addEvent").permitAll()
-                                .requestMatchers("/check").permitAll()
-                                .requestMatchers("/search/{eventTitle}/{eventVenue}").permitAll()
-//                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
-//                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
-//                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
-//                                .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
-//                                .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(ADMIN_DELETE.name(), MANAGER_DELETE.name())
+                        req.dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+                                .requestMatchers(PUBLIC_ROUTES).permitAll()
+                                .requestMatchers(AUTH_ROUTES).authenticated()
                                 .anyRequest()
                                 .authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(daoAuthenticationProvider())
+                .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-//                .logout(logout ->
-//                        logout.logoutUrl("/api/v1/auth/logout")
-//                                .addLogoutHandler(logoutHandler)
-//                                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
-//                )
-        ;
+                .exceptionHandling((exception)-> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
         return http.build();
-    }
-    @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(){
-        DaoAuthenticationProvider daoAuthenticationProvider= new DaoAuthenticationProvider();
-
-        daoAuthenticationProvider.setUserDetailsService(userServiceImplementation);
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-
-        return daoAuthenticationProvider;
     }
 }
