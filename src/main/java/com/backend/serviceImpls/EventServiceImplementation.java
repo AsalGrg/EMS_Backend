@@ -113,6 +113,25 @@ public class EventServiceImplementation implements EventService {
         return event;
     }
 
+    @Override
+    public List<EventResponseDto> getQuickSearchResult(String keyword) {
+        List<Event> quickSearchEvents = eventRepository.getQuickSearchResult(keyword);
+        if(quickSearchEvents.isEmpty()) throw new ResourceNotFoundException("Searched event not found at the moment, you may like other events");
+
+        List<EventResponseDto> filteredEventsView = new ArrayList<>();
+
+        for(Event event: quickSearchEvents){
+            if(event.getEventLocation().isPhysical()){
+                filteredEventsView.add(changeToEventDto(event, getEventPhysicalLocationDetails(event.getEventLocation())));
+            }
+            else {
+                filteredEventsView.add(changeToEventDto(event,null));
+            }
+        }
+
+        return filteredEventsView;
+    }
+
 
     @Override
     public Event getEventByName(String name){

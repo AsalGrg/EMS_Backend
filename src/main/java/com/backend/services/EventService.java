@@ -16,7 +16,7 @@ import java.util.List;
 
     Event getEventById(int id);
 
-
+    List<EventResponseDto> getQuickSearchResult( String keyword);
     List<EventResponseDto> getEventsByFilter(SearchEventByFilterDto searchEventByFilterDto);
 
      List<EventResponseDto> getEventsBySearch(String eventTitle, String eventVenue);

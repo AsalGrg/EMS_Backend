@@ -150,5 +150,15 @@ public class EventRepositoryImpl implements EventRepository {
         return getEventsByUser.getResultList();
     }
 
+    @Override
+    public List<Event> getQuickSearchResult(String keyword) {
+
+        Session session=  sessionFactory.openSession();
+        Query<Event> getQuickResults= session.createQuery("FROM Event e JOIN event_physical_location_details epl ON e.eventLocation.id = epl.eventLocation.id WHERE e.name LIKE :eventName OR e.eventCategory.title LIKE :eventTitle OR epl.displayName LIKE :eventLocation", Event.class);
+        getQuickResults.setParameter("eventName", "%"+keyword+"%");
+        getQuickResults.setParameter("eventTitle", "%"+keyword+"%");
+        getQuickResults.setParameter("eventLocation", "%"+keyword+"%");
+        return getQuickResults.getResultList();
+    }
 
 }

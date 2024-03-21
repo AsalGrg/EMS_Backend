@@ -77,6 +77,12 @@ public class EventController {
         return new ResponseEntity<>(searchedEvents, HttpStatus.OK);
     }
 
+    @GetMapping("/search/quickSearch/{keyword}")
+    public ResponseEntity<?> getQuickSearchResults(@PathVariable("keyword") String keyword){
+        List<EventResponseDto> searchedEvents= eventService.getQuickSearchResult(keyword);
+        return new ResponseEntity<>(searchedEvents, HttpStatus.OK);
+    }
+
     @GetMapping("/trendingEvents")
     public ResponseEntity<?> getTrendingEvents(){
         List<EventResponseDto> trendingEvents = eventService.getTrendingEvents();

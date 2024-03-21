@@ -36,4 +36,6 @@ public interface EventRepository {
     boolean existsByName(String name);
 
     List<Event> getEventsByUser(User user);
+
+    List<Event> getQuickSearchResult(String keyword);
 }
