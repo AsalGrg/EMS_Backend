@@ -44,4 +44,9 @@ public class EventLocationServiceImplementation implements EventLocationService 
                 eventLocationObj
         );
     }
+
+    @Override
+    public EventLocation updateEventLocation(EventLocation eventLocation) {
+        return eventLocationRepository.saveEventLocation(eventLocation);
+    }
 }

@@ -44,7 +44,9 @@ public class SecurityConfig{
             "/verify-otp",
             "/login",
             "/search/{eventTitle}/{eventVenue}",
-            "/search/quickSearch/{keyword}"
+            "/search/quickSearch/{keyword}",
+            "/addFirstPageInfo",
+            "/addSecondPageInfo"
     };
     private JwtFilter jwtAuthFilter;
 

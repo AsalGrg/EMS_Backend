@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,14 +91,51 @@ public class EventController {
         return ResponseEntity.ok(trendingEvents);
     }
 
-    @PostMapping( path = "/addEvent"
+
+    @PostMapping("/addFirstPageInfo")
+    public ResponseEntity<?> addFirstPageInfo(@Valid @RequestPart (name = "eventFirstPageDetails") AddEventFirstPageDto addEventFirstPageDto,
+                                              @Valid @RequestPart(name = "eventDateDetails")EventDateDetailsDto eventDateDetailsDto,
+                                              @Valid @RequestPart(name = "eventPhysicalLocationDetails", required = false) EventPhysicalLocationDetailsDto eventPhysicalLocationDetails
+                                              ){
+        Integer eventId = eventService.addFirstPageDetails(addEventFirstPageDto,eventDateDetailsDto, eventPhysicalLocationDetails);
+        log.info("Event IDsdlsldsldsld: "+ eventId);
+        return new ResponseEntity<>(eventId, HttpStatus.OK);
+    }
+
+    @PostMapping("/addSecondPageInfo")
+    public ResponseEntity<?> addSecondPageInfo (
+            @Valid @RequestPart(name = "eventSecondPageDetails") AddEventSecondPageDto addEventSecondPageDto,
+            @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
+            @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
+            @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
+            @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
+            @RequestPart(name = "starring3Photo", required = false) MultipartFile starring3Photo,
+            @RequestPart(name = "starring4Photo", required = false) MultipartFile starring4Photo,
+            @RequestPart(name = "starring5Photo", required = false) MultipartFile starring5Photo
+    ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        addEventSecondPageDto.setEventCoverImage(eventCoverImage);
+
+
+        MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
+        for (int i = 0; i < multipartFiles.length; i++) {
+            if (multipartFiles[i] != null) {
+                Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", MultipartFile.class);
+                method.invoke(eventStarringDetails, multipartFiles[i]);
+            }
+        }
+
+        eventService.addEventSecondPageDetails(addEventSecondPageDto, eventStarringDetails);
+
+        return ResponseEntity.ok("Second Page Details added successfully");
+    }
+
+/*    @PostMapping( path = "/addEvent"
             , consumes = {"multipart/form-data"})
     public ResponseEntity<?> addEvent(@Valid @RequestPart(name = "eventDetails") AddEventRequestDto addEventDto,
-                                      @Valid @RequestPart(name = "eventDateDetails")EventDateDetailsDto eventDateDetailsDto,
                                       @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
                                       @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto,
                                       @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
-                                      @Valid @RequestPart(name = "eventPhysicalLocationDetails", required = false) EventPhysicalLocationDetailsDto eventPhysicalLocationDetails,
                                       @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
                                       @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
                                       @RequestPart(name = "starring3Photo", required = false) MultipartFile starring3Photo,
@@ -116,7 +154,7 @@ public class EventController {
             }
         }
         return new ResponseEntity<>(eventService.addEvent(addEventDto, eventTicketDetailsDto, eventDateDetailsDto, eventStarringDetails,eventPhysicalLocationDetails), HttpStatus.OK);
-    }
+    }*/
     @PostMapping("/addPromoCode")
     public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto) {
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));

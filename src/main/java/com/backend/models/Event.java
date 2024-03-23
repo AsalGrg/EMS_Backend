@@ -18,32 +18,8 @@ public class Event {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "event_title")
-    private String name;
-
-    @OneToOne
-    @JoinColumn(name= "event_location_id")
-    private EventLocation eventLocation;
-
-    @OneToOne
-    @JoinColumn(name = "event_date_id")
-    private EventDate eventDate;
-
-    @Column(name = "event_cover_image_url")
-    private String eventCoverPage;
-
-    @Column(name = "hasStarring")
-    private boolean hasStarring;
-
-    @Column(name = "about_event")
-    private String aboutEvent;
-
     @Column(name="isPrivate")
     private boolean isPrivate;
-
-    @OneToOne
-    @JoinColumn(name = "event_ticket_id")
-    private EventTicket eventTicket;
 
     @OneToOne
     @JoinColumn(name = "visibility_id")
@@ -53,10 +29,17 @@ public class Event {
     @JoinColumn(name = "event_organizer_id")
     private User eventOrganizer;
 
-    @ManyToOne
-    @JoinColumn(name = "event_cat_id" )
-    private EventCategory eventCategory;
+    @OneToOne
+    @JoinColumn(name = "event_first_page_details")
+    private EventFirstPageDetails eventFirstPageDetails;
 
+    @OneToOne
+    @JoinColumn(name = "event_second_page_details")
+    private EventSecondPageDetails eventSecondPageDetails;
+
+    @OneToOne
+    @JoinColumn(name = "event_third_page_details")
+    private EventThirdPageDetails eventThirdPageDetails;
 
 }
 

@@ -36,8 +36,6 @@ public class StarringServiceImplementation implements StarringService {
     @Override
     public void saveStarring(EventStarringDetails eventStarringDetails, Event event) {
         EventStarring eventStarring= new EventStarring();
-
-
         for (int index=1; index<5; index++) {
 
             try {
@@ -68,6 +66,55 @@ public class StarringServiceImplementation implements StarringService {
 
         }
         starringRepository.saveStarring(eventStarring);
+    }
+
+    public void updateEventStarring (EventStarringDetails eventStarringDetails, Event event) {
+        EventStarring eventStarring = starringRepository.getEventStarringByEventId(event.getId());
+
+        for (int index = 1; index < 5; index++) {
+
+            try {
+                Method methodStarringPhoto = eventStarringDetails.getClass().getMethod("getStarring" + index + "Photo");
+                Method methodStarringName = eventStarringDetails.getClass().getMethod("getStarring"+index+"Name");
+//                Method methodStarringPhotoName= eventStarringDetails.getClass().getMethod("getStarring"+index+"ImgName");
+
+                MultipartFile newStarringImage = (MultipartFile) methodStarringPhoto.invoke(eventStarringDetails);
+                String newStarringName = (String) methodStarringName.invoke(eventStarringDetails);
+
+
+                //savedstarring operations
+                String savedStarringName = (String) methodStarringName.invoke(eventStarring);
+                Method methodStarringPhotoName= eventStarring.getClass().getMethod("getStarring"+index+"ImgName");
+                String savedStarringPhotoName = (String)methodStarringPhotoName.invoke(eventStarring);
+
+                Method methodStarringSetStarringPhoto = eventStarring.getClass().getMethod("setStarring"+index+"Photo");
+                Method methodStarringSetStarringImgName = eventStarring.getClass().getMethod("setStarring"+index+"ImgName");
+                Method methodStarringSetStarringName = eventStarring.getClass().getMethod("setStarring"+index+"Name");
+
+
+                if (newStarringImage == null) {
+                    methodStarringSetStarringPhoto.invoke(eventStarring, null);
+                    methodStarringSetStarringImgName.invoke(eventStarring,null);
+                    methodStarringSetStarringName.invoke(eventStarring, null);
+                    continue;
+                }
+
+                if(!newStarringImage.getOriginalFilename().equals(savedStarringPhotoName)){
+                    methodStarringSetStarringPhoto.invoke(eventStarring,uploadPhoto(newStarringImage));
+                    methodStarringSetStarringImgName.invoke(eventStarring, newStarringImage.getOriginalFilename());
+                }
+
+                if(!newStarringName.equals(savedStarringName)){
+                    methodStarringSetStarringName.invoke(eventStarring, newStarringName);
+                }
+
+
+                starringRepository.saveStarring(eventStarring);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private String uploadPhoto(MultipartFile photo){

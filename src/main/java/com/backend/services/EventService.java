@@ -1,14 +1,9 @@
 package com.backend.services;
 
 import com.backend.dtos.AddPromoCodeDto;
-import com.backend.dtos.AddStarringDto;
-import com.backend.dtos.EventAccessRequestsView;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
-import com.backend.models.EventPhysicalLocationDetails;
-import com.backend.models.PromoCode;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -39,4 +34,7 @@ import java.util.List;
 
      Event addEvent(AddEventRequestDto addEventDto, EventTicketDetailsDto eventTicketDetails, EventDateDetailsDto eventDateDetails, EventStarringDetails eventStarringDetails, EventPhysicalLocationDetailsDto eventPhysicalLocationDetailsDto);
 
+     Integer addFirstPageDetails(AddEventFirstPageDto addEventFirstPageDto, EventDateDetailsDto eventDateDetailsDto, EventPhysicalLocationDetailsDto eventPhysicalLocationDetails);
+
+     void addEventSecondPageDetails(AddEventSecondPageDto addEventSecondPageDto, EventStarringDetails eventStarringDetails);
 }

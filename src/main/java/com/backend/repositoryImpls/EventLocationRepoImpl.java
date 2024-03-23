@@ -23,7 +23,7 @@ public class EventLocationRepoImpl implements EventLocationRepository {
 
             try {
                 transaction = session.beginTransaction();
-                session.save(eventLocation);
+                session.merge(eventLocation);
                 transaction.commit();
             } catch (Exception e) {
                 if (transaction != null) {
