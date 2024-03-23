@@ -101,7 +101,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     }
 
     public EventResponseDto changeToEventDto(Event event, EventPhysicalLocationDetails physicalLocationDetails){
-        if(physicalLocationDetails==null) {
+ /*       if(physicalLocationDetails==null) {
             return EventResponseDto.builder().
                     eventName(event.getName())
                     .eventCoverImgUrl(event.getEventCoverPage())
@@ -124,7 +124,9 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
                 .location_display_name(physicalLocationDetails.getDisplayName())
                 .lat(physicalLocationDetails.getLat())
                 .lon(physicalLocationDetails.getLon())
-                .build();
+                .build();*/
+
+        return null;
     }
 
 
@@ -278,14 +280,14 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
                 .noOfEvents(userEvents.size())
                 .pastEvents(
                         userEvents.stream()
-                                .filter(each-> each.getEventDate().getEventEndDate().isBefore(LocalDate.now()))
-                                .map(each-> changeToEventDto(each, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(each.getEventLocation())))
+                                .filter(each-> each.getEventFirstPageDetails().getEventDate().getEventEndDate().isBefore(LocalDate.now()))
+                                .map(each-> changeToEventDto(each, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(each.getEventFirstPageDetails().getEventLocation())))
                                 .toList()
                 ).
                 upcomingEvents(
                 userEvents.stream()
-                        .filter(each-> each.getEventDate().getEventEndDate().isAfter(LocalDate.now()))
-                        .map(each-> changeToEventDto(each, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(each.getEventLocation())))
+                        .filter(each-> each.getEventFirstPageDetails().getEventDate().getEventEndDate().isAfter(LocalDate.now()))
+                        .map(each-> changeToEventDto(each, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(each.getEventFirstPageDetails().getEventLocation())))
                         .toList())
                 .build();
     }

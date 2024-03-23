@@ -27,11 +27,17 @@ public class EventStarring {
     @Column(name = "starring1_name")
     private String starring1Name;
 
+    @Column(name = "starring1_img_name")
+    private String starring1ImgName;
+
     @Column(name = "starring2_photo")
     private String starring2Photo;
 
     @Column(name = "starring2_name")
     private String starring2Name;
+
+    @Column(name = "starring2_img_name")
+    private String starring2ImgName;
 
     @Column(name = "starring3_photo")
     private String starring3Photo;
@@ -39,11 +45,17 @@ public class EventStarring {
     @Column(name = "starring3_name")
     private String starring3Name;
 
+    @Column(name = "starring3_img_name")
+    private String starring3ImgName;
+
     @Column(name = "starring4_photo")
     private String starring4Photo;
 
     @Column(name = "starring4_name")
     private String starring4Name;
+
+    @Column(name = "starring4_img_name")
+    private String starring4ImgName;
 
     @Column(name = "starring5_photo")
     private String starring5Photo;
@@ -51,4 +63,6 @@ public class EventStarring {
     @Column(name = "starring5_name")
     private String starring5Name;
 
+    @Column(name = "starring5_img_name")
+    private String starring5ImgName;
 }

@@ -1,8 +1,6 @@
 package com.backend.repositories;
 
-import com.backend.models.Event;
-import com.backend.models.EventCategory;
-import com.backend.models.User;
+import com.backend.models.*;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -35,5 +33,13 @@ public interface EventRepository {
 
     boolean existsByName(String name);
 
+    boolean existsByNameButNotForDraft(String name, Integer eventId);
+
     List<Event> getEventsByUser(User user);
+
+    List<Event> getQuickSearchResult(String keyword);
+
+    EventFirstPageDetails saveFirstPageDetails(EventFirstPageDetails eventFirstPageDetails);
+
+    EventSecondPageDetails saveSecondPageDetails(EventSecondPageDetails eventSecondPageDetails);
 }

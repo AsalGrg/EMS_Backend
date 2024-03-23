@@ -21,7 +21,7 @@ public class EventDateRepoImpl implements EventDateRepository {
 
         try {
             transaction = session.beginTransaction();
-            session.save(eventDate);
+            session.merge(eventDate);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

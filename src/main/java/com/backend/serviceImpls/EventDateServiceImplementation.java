@@ -21,18 +21,9 @@ public class EventDateServiceImplementation implements EventDateService {
     }
 
     @Override
-    public EventDate saveEventDate(EventDateDetailsDto eventDateDetailsDto) {
+    public EventDate saveEventDate(EventDate eventDate) {
         return eventDateRepository.saveEventDate(
-                EventDate
-                        .builder()
-                        .eventStartDate(eventDateDetailsDto.getEventStartDate())
-                        .eventStartTime(eventDateDetailsDto.getEventStartTime())
-                        .eventEndDate(eventDateDetailsDto.getEventEndDate())
-                        .eventEndTime(eventDateDetailsDto.getEventEndTime())
-                        .eventPublishDate(LocalDateTime.now())
-                        .displayStartTime(eventDateDetailsDto.isDisplayStartTime())
-                        .displayEndTime(eventDateDetailsDto.isDisplayEndTime())
-                        .build()
+                eventDate
         );
     }
 }

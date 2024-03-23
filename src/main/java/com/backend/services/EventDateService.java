@@ -5,5 +5,5 @@ import com.backend.models.EventDate;
 
 public interface EventDateService {
 
-    EventDate saveEventDate(EventDateDetailsDto eventDateDetailsDto);
+    EventDate saveEventDate(EventDate eventDate);
 }
