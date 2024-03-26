@@ -1,6 +1,13 @@
 package com.backend.models;
 
 import jakarta.persistence.*;
+import lombok.*;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 
 @Entity
 @Table(name = "event_third_page_details")

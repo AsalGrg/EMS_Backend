@@ -37,4 +37,9 @@ import java.util.List;
      Integer addFirstPageDetails(AddEventFirstPageDto addEventFirstPageDto, EventDateDetailsDto eventDateDetailsDto, EventPhysicalLocationDetailsDto eventPhysicalLocationDetails);
 
      void addEventSecondPageDetails(AddEventSecondPageDto addEventSecondPageDto, EventStarringDetails eventStarringDetails);
-}
+
+     void addEventThirdPageDetails(EventTicketDetailsDto eventTicketDetailsDto);
+
+     void addEventFourthPageDetails (AddEventFourthPageDto addEventFourthPageDto);
+
+ }

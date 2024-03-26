@@ -39,4 +39,22 @@ public class EventTicketServiceImplementation implements EventTicketService {
                         .build()
         );
     }
+
+    @Override
+    public EventTicket updateEventTicket(EventTicketDetailsDto eventTicketDetailsDto, int eventTicketId) {
+        return eventTicketRepository.saveEventTicket(
+                EventTicket
+                        .builder()
+                        .id(eventTicketId)
+                        .ticketType(ticketTypeService.findTicketTypeByName(eventTicketDetailsDto.getTicketType()))
+                        .ticketName(eventTicketDetailsDto.getTicketName())
+                        .ticketPrice(eventTicketDetailsDto.getTicketPrice())
+                        .ticketQuantity(eventTicketDetailsDto.getTicketQuantity())
+                        .ticketStartDate(eventTicketDetailsDto.getSaleStartDate())
+                        .ticketStartTime(eventTicketDetailsDto.getSaleStartTime())
+                        .ticketEndDate(eventTicketDetailsDto.getSaleEndDate())
+                        .ticketEndTime(eventTicketDetailsDto.getSaleEndTime())
+                        .build()
+        );
+    }
 }

@@ -25,11 +25,21 @@ public class EventVisibilityServiceImplementation implements EventVisibilityServ
 
     @Override
     public EventVisibility saveEventVisibility(String eventVisibilityType, String eventAccessPassword) {
-
-        log.info(eventVisibilityType);
         return eventVisibilityRepository.saveEventVisibility(
                 EventVisibility
                         .builder()
+                        .visibilityType(visibilityTypeService.findVisibilityTypeByName(eventVisibilityType))
+                        .eventAccessPassword(eventAccessPassword)
+                        .build()
+        );
+    }
+
+    @Override
+    public EventVisibility updateEventVisibility(String eventVisibilityType, String eventAccessPassword, int visibilityId) {
+        return eventVisibilityRepository.saveEventVisibility(
+                EventVisibility
+                        .builder()
+                        .id(visibilityId)
                         .visibilityType(visibilityTypeService.findVisibilityTypeByName(eventVisibilityType))
                         .eventAccessPassword(eventAccessPassword)
                         .build()

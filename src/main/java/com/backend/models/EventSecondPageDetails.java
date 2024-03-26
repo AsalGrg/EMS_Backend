@@ -21,6 +21,8 @@ public class EventSecondPageDetails {
     @Column(name = "event_cover_image_url")
     private String eventCoverPage;
 
+    @Column(name = "cover_img_name")
+    private String coverImgName;
 
     @Column(name = "hasStarring")
     private boolean hasStarring;

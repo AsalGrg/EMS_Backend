@@ -4,13 +4,16 @@ import com.backend.dtos.AddPromoCodeDto;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.*;
 import com.backend.exceptions.InternalServerError;
+import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.*;
 import com.backend.repositories.*;
 import com.backend.services.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -339,10 +342,15 @@ public class EventServiceImplementation implements EventService {
 
             EventFirstPageDetails savedFirstPageDetails = eventRepository.saveFirstPageDetails(eventFirstPageDetails);
 
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
             Event savedEvent = saveEvent(
                     //TODO: add organizer details
                     Event
                             .builder()
+                            .eventStatus("draft")
+                            .eventOrganizer(userService.getUserByUsername(username))
+                            .pageStatus(0)
                             .eventFirstPageDetails(savedFirstPageDetails)
                             .build()
             );
@@ -417,26 +425,37 @@ public class EventServiceImplementation implements EventService {
             throw  new InternalServerError("Invalid event creation attempt");
         }
 
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Event event = getEventById(addEventSecondPageDto.getEventId());
 
+
+        if(!Objects.equals(username, event.getEventOrganizer().getUsername())){
+            throw new NotAuthorizedException("Not authorized for the action");
+        }
         EventSecondPageDetails eventSecondPageDetails = event.getEventSecondPageDetails();
 
         if(eventSecondPageDetails==null){
-            String coverImageUrl = cloudinaryUploadService.uploadImage(addEventSecondPageDto.getEventCoverImage(), "Event Cover Photo");
-
+            String coverImageUrl= null;
+            String coverImageName= null;
+            if(addEventSecondPageDto.getEventCoverImage()!=null) {
+                coverImageUrl = cloudinaryUploadService.uploadImage(addEventSecondPageDto.getEventCoverImage(), "Event Cover Photo");
+                coverImageName= addEventSecondPageDto.getEventCoverImage().getOriginalFilename();
+            }
             EventSecondPageDetails savedEventSecondPageDetails = eventRepository.saveSecondPageDetails(
                     EventSecondPageDetails
                             .builder()
                             .eventCoverPage(coverImageUrl)
+                            .coverImgName(coverImageName)
                             .aboutEvent(addEventSecondPageDto.getAboutEvent())
                             .hasStarring(addEventSecondPageDto.isHasStarring())
                             .build()
             );
-
             event.setEventSecondPageDetails(savedEventSecondPageDetails);
+            event.setPageStatus(1);
             saveEvent(event);
         }else{
-
+            updateEventSecondPageDetails(addEventSecondPageDto, eventStarringDetails, event);
         }
 
         if(addEventSecondPageDto.isHasStarring()){
@@ -444,21 +463,113 @@ public class EventServiceImplementation implements EventService {
         }
     }
 
+    public void updateEventSecondPageDetails(AddEventSecondPageDto addEventSecondPageDto, EventStarringDetails eventStarringDetails, Event event) {
 
-    public void updateEventSecondPageDetails(AddEventSecondPageDto addEventSecondPageDto, EventStarringDetails eventStarringDetails){
-        String coverImageUrl = cloudinaryUploadService.uploadImage(addEventSecondPageDto.getEventCoverImage(), "Event Cover Photo");
+        EventSecondPageDetails savedEventSecondPageDetails;
 
-        EventSecondPageDetails savedEventSecondPageDetails = eventRepository.saveSecondPageDetails(
-                EventSecondPageDetails
-                        .builder()
-                        .eventCoverPage(coverImageUrl)
-                        .aboutEvent(addEventSecondPageDto.getAboutEvent())
-                        .hasStarring(addEventSecondPageDto.isHasStarring())
-                        .build()
-        );
+        if(addEventSecondPageDto.getEventCoverImage()==null){
+            savedEventSecondPageDetails = eventRepository.saveSecondPageDetails(
+                    EventSecondPageDetails
+                            .builder()
+                            .id(event.getEventSecondPageDetails().getId())
+                            .eventCoverPage(null)
+                            .coverImgName(null)
+                            .aboutEvent(addEventSecondPageDto.getAboutEvent())
+                            .hasStarring(addEventSecondPageDto.isHasStarring())
+                            .build()
+            );
+        }else {
+            if (event.getEventSecondPageDetails().getCoverImgName()==null || !event.getEventSecondPageDetails().getCoverImgName().equals(addEventSecondPageDto.getEventCoverImage().getOriginalFilename())) {
+                String coverImageUrl = cloudinaryUploadService.uploadImage(addEventSecondPageDto.getEventCoverImage(), "Event Cover Photo");
+                savedEventSecondPageDetails = eventRepository.saveSecondPageDetails(
+                        EventSecondPageDetails
+                                .builder()
+                                .id(event.getEventSecondPageDetails().getId())
+                                .eventCoverPage(coverImageUrl)
+                                .coverImgName(addEventSecondPageDto.getEventCoverImage().getOriginalFilename())
+                                .aboutEvent(addEventSecondPageDto.getAboutEvent())
+                                .hasStarring(addEventSecondPageDto.isHasStarring())
+                                .build()
+                );
+            }else{
+                savedEventSecondPageDetails = eventRepository.saveSecondPageDetails(
+                        EventSecondPageDetails
+                                .builder()
+                                .id(event.getEventSecondPageDetails().getId())
+                                .eventCoverPage(event.getEventSecondPageDetails().getEventCoverPage())
+                                .coverImgName(event.getEventSecondPageDetails().getCoverImgName())
+                                .aboutEvent(addEventSecondPageDto.getAboutEvent())
+                                .hasStarring(addEventSecondPageDto.isHasStarring())
+                                .build()
+                );
+            }
+        }
 
         event.setEventSecondPageDetails(savedEventSecondPageDetails);
         saveEvent(event);
+    }
+
+
+    @Override
+    public void addEventThirdPageDetails(EventTicketDetailsDto eventTicketDetailsDto) {
+
+        if (eventTicketDetailsDto.getEventId() == null) {
+            throw new InternalServerError("Invalid event creation attempt");
+        }
+        Event event = eventRepository.getEventById(eventTicketDetailsDto.getEventId());
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!Objects.equals(username, event.getEventOrganizer().getUsername())) {
+            throw new NotAuthorizedException("Not authorized for the action");
+
+        }
+            EventThirdPageDetails eventThirdPageDetails = event.getEventThirdPageDetails();
+
+            if (eventThirdPageDetails == null) {
+                EventTicket eventTicket = eventTicketService.saveEventTicket(eventTicketDetailsDto);
+                eventThirdPageDetails = EventThirdPageDetails.builder()
+                        .eventTicket(eventTicket)
+                        .build();
+                EventThirdPageDetails savedEventThirdPageDetails = eventRepository.saveThirdPageDetails(eventThirdPageDetails);
+                //updating the event
+                event.setEventThirdPageDetails(savedEventThirdPageDetails);
+                event.setPageStatus(2);
+                eventRepository.saveEvent(event);
+
+
+            } else {
+                //update
+                eventTicketService.updateEventTicket(eventTicketDetailsDto, eventThirdPageDetails.getEventTicket().getId());
+            }
+
+        }
+
+    @Override
+    public void addEventFourthPageDetails(AddEventFourthPageDto addEventFourthPageDto) {
+
+        if (addEventFourthPageDto.getEventId()==null){
+            throw  new InternalServerError("Invalid event creation attempt");
+        }
+        Event event = eventRepository.getEventById(addEventFourthPageDto.getEventId());
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if(!Objects.equals(username, event.getEventOrganizer().getUsername())) {
+            throw new NotAuthorizedException("Not authorized for the action");
+        }
+
+        EventVisibility eventVisibilityFromDb = event.getEventVisibility();
+
+        if(eventVisibilityFromDb==null){
+            eventVisibilityFromDb= eventVisibilityService.saveEventVisibility(addEventFourthPageDto.getVisibilityOption(), addEventFourthPageDto.getAccessPassword());
+            event.setEventVisibility(eventVisibilityFromDb);
+            event.setEventStatus("completed");
+            event.setPageStatus(3);
+            eventRepository.saveEvent(event);
+        }else {
+            eventVisibilityService.updateEventVisibility(addEventFourthPageDto.getVisibilityOption(), addEventFourthPageDto.getAccessPassword(), eventVisibilityFromDb.getId());
+        }
     }
 
     @Override

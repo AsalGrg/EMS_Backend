@@ -42,4 +42,6 @@ public interface EventRepository {
     EventFirstPageDetails saveFirstPageDetails(EventFirstPageDetails eventFirstPageDetails);
 
     EventSecondPageDetails saveSecondPageDetails(EventSecondPageDetails eventSecondPageDetails);
+
+    EventThirdPageDetails saveThirdPageDetails(EventThirdPageDetails eventThirdPageDetails);
 }

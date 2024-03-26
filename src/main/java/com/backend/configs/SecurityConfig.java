@@ -36,7 +36,13 @@ public class SecurityConfig{
     private static final String[] AUTH_ROUTES = {
             "/user",
             "/user/loggedInSnippet",
-            "/user/profile"
+            "/user/profile",
+            "/addFirstPageInfo",
+            "/addSecondPageInfo",
+            "/addThirdPageDetails",
+            "/draftSecondPageInfo",
+            "addFourthPageDetails",
+            "/draftFourthPageDetails"
     };
 
     private static final String[] PUBLIC_ROUTES = {
@@ -44,9 +50,7 @@ public class SecurityConfig{
             "/verify-otp",
             "/login",
             "/search/{eventTitle}/{eventVenue}",
-            "/search/quickSearch/{keyword}",
-            "/addFirstPageInfo",
-            "/addSecondPageInfo"
+            "/search/quickSearch/{keyword}"
     };
     private JwtFilter jwtAuthFilter;
 

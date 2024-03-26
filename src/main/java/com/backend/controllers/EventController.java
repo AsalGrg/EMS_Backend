@@ -116,7 +116,6 @@ public class EventController {
 
         addEventSecondPageDto.setEventCoverImage(eventCoverImage);
 
-
         MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
         for (int i = 0; i < multipartFiles.length; i++) {
             if (multipartFiles[i] != null) {
@@ -130,22 +129,19 @@ public class EventController {
         return ResponseEntity.ok("Second Page Details added successfully");
     }
 
-/*    @PostMapping( path = "/addEvent"
-            , consumes = {"multipart/form-data"})
-    public ResponseEntity<?> addEvent(@Valid @RequestPart(name = "eventDetails") AddEventRequestDto addEventDto,
-                                      @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
-                                      @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto,
-                                      @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
-                                      @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
-                                      @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
-                                      @RequestPart(name = "starring3Photo", required = false) MultipartFile starring3Photo,
-                                      @RequestPart(name = "starring4Photo", required = false) MultipartFile starring4Photo,
-                                      @RequestPart(name = "starring5Photo", required = false) MultipartFile starring5Photo
-                                      ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    @PostMapping("/draftSecondPageInfo")
+    public ResponseEntity<?> saveSecondPageDraft (
+            @RequestPart(name = "eventSecondPageDetails") AddEventSecondPageDto addEventSecondPageDto,
+            @RequestPart(name = "eventCoverImage", required = false) MultipartFile eventCoverImage,
+            @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
+            @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
+            @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
+            @RequestPart(name = "starring3Photo", required = false) MultipartFile starring3Photo,
+            @RequestPart(name = "starring4Photo", required = false) MultipartFile starring4Photo,
+            @RequestPart(name = "starring5Photo", required = false) MultipartFile starring5Photo
+    ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        addEventDto.setEventCoverPhoto(eventCoverImage);
-
-//        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto), HttpStatus.OK);
+        addEventSecondPageDto.setEventCoverImage(eventCoverImage);
         MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
         for (int i = 0; i < multipartFiles.length; i++) {
             if (multipartFiles[i] != null) {
@@ -153,8 +149,65 @@ public class EventController {
                 method.invoke(eventStarringDetails, multipartFiles[i]);
             }
         }
-        return new ResponseEntity<>(eventService.addEvent(addEventDto, eventTicketDetailsDto, eventDateDetailsDto, eventStarringDetails,eventPhysicalLocationDetails), HttpStatus.OK);
-    }*/
+        eventService.addEventSecondPageDetails(addEventSecondPageDto, eventStarringDetails);
+
+        return ResponseEntity.ok("Second Page Details added successfully");
+    }
+
+
+    @PostMapping("/addThirdPageDetails")
+    public ResponseEntity<?> addThirdPageInfo(@Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto){
+        eventService.addEventThirdPageDetails(eventTicketDetailsDto);
+        return ResponseEntity.ok("Third Page Details added successfully");
+    }
+
+    @PostMapping("/draftThirdPageInfo")
+    public ResponseEntity<?> saveSecondPageDraft(@RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto){
+        eventService.addEventThirdPageDetails(eventTicketDetailsDto);
+        return ResponseEntity.ok("Third Page Details added successfully");
+    }
+
+    @PostMapping("/addFourthPageDetails")
+    public ResponseEntity<?> addFourthPageDetails(@Valid @RequestPart(name = "eventFourthPageDetails") AddEventFourthPageDto addEventFourthPageDto){
+        eventService.addEventFourthPageDetails(addEventFourthPageDto);
+        return ResponseEntity.ok("Fourth Page Details added successfully");
+    }
+
+    @PostMapping("/draftFourthPageDetails")
+    public ResponseEntity<?> draftFourthPageDetails(@RequestPart(name = "eventFourthPageDetails") AddEventFourthPageDto addEventFourthPageDto){
+        eventService.addEventFourthPageDetails(addEventFourthPageDto);
+        return ResponseEntity.ok("Fourth Page Details added successfully");
+    }
+
+//
+//    //for adding event at once
+//    @PostMapping( path = "/addEvent"
+//            , consumes = {"multipart/form-data"})
+//    public ResponseEntity<?> addEvent(@Valid @RequestPart(name = "eventDetails") AddEventRequestDto addEventDto,
+//                                      @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
+//                                      @Valid @RequestPart(name = "eventTicketDetails")EventTicketDetailsDto eventTicketDetailsDto,
+//                                      @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
+//                                      @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
+//                                      @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
+//                                      @RequestPart(name = "starring3Photo", required = false) MultipartFile starring3Photo,
+//                                      @RequestPart(name = "starring4Photo", required = false) MultipartFile starring4Photo,
+//                                      @RequestPart(name = "starring5Photo", required = false) MultipartFile starring5Photo
+//                                      ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+//
+//        addEventDto.setEventCoverPhoto(eventCoverImage);
+//
+////        return new ResponseEntity<>(eventService.addEvent(addEventDto,eventTicketDetailsDto, eventDateDetailsDto), HttpStatus.OK);
+//        MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
+//        for (int i = 0; i < multipartFiles.length; i++) {
+//            if (multipartFiles[i] != null) {
+//                Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", MultipartFile.class);
+//                method.invoke(eventStarringDetails, multipartFiles[i]);
+//            }
+//        }
+//        return new ResponseEntity<>(eventService.addEvent(addEventDto, eventTicketDetailsDto, eventDateDetailsDto, eventStarringDetails,eventPhysicalLocationDetails), HttpStatus.OK);
+//    }
+//
+
     @PostMapping("/addPromoCode")
     public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto) {
         promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));

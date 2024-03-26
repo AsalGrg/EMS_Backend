@@ -102,6 +102,27 @@ public class EventRepositoryImpl implements EventRepository {
         return eventSecondPageDetails;
     }
 
+    @Override
+    public EventThirdPageDetails saveThirdPageDetails(EventThirdPageDetails eventThirdPageDetails) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            session.merge(eventThirdPageDetails);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace(); // Handle the exception appropriately
+        } finally {
+            session.close();
+        }
+
+        return eventThirdPageDetails;
+    }
+
 
     @Override
     public List<Event> getEventByLocation(String location) {

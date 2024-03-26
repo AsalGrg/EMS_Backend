@@ -21,6 +21,12 @@ public class Event {
     @Column(name="isPrivate")
     private boolean isPrivate;
 
+    @Column(name = "event_status")
+    private String eventStatus;
+
+    @Column(name = "page_status")
+    private int pageStatus;
+
     @OneToOne
     @JoinColumn(name = "visibility_id")
     private EventVisibility eventVisibility;
