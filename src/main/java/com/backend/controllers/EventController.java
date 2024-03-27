@@ -6,6 +6,7 @@ import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
 import com.backend.models.EventPhysicalLocationDetails;
+import com.backend.services.EventCategoryService;
 import com.backend.services.EventService;
 import com.backend.utils.IsImage;
 import jakarta.servlet.http.HttpSession;
@@ -33,13 +34,14 @@ public class EventController {
 
     private final EventService eventService;
 
-    private final HttpSession httpSession;
+    private final EventCategoryService eventCategoryService;
+
 
     @Autowired
     public EventController
-            (EventService eventService, HttpSession httpSession){
+            (EventService eventService, EventCategoryService eventCategoryService){
         this.eventService= eventService;
-        this.httpSession= httpSession;
+        this.eventCategoryService= eventCategoryService;
     }
 
 
@@ -49,12 +51,12 @@ public class EventController {
     }
 
     @GetMapping("/event_id/{id}")
-    public ResponseEntity<Event> getEventDetailsById(@PathVariable("id") int id){
-        return new ResponseEntity<>(eventService.getEventById(id), HttpStatus.OK);
+    public ResponseEntity<?> getEventDetailsById(@PathVariable("id") int id) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return new ResponseEntity<>(eventService.getAboutEventByEventId(id), HttpStatus.OK);
     }
 
     @GetMapping("/place/{place}")
-    public ResponseEntity<List<Event>> getEventByPlace(@PathVariable("place") String place){
+    public ResponseEntity<List<EventResponseDto>> getEventByPlace(@PathVariable("place") String place){
         return new ResponseEntity<>(eventService.getEventByPlace(place), HttpStatus.OK);
     }
 
@@ -91,6 +93,10 @@ public class EventController {
         return ResponseEntity.ok(trendingEvents);
     }
 
+    @GetMapping("/allCategories")
+    public ResponseEntity<?> getAllEventCategories(){
+        return ResponseEntity.ok(eventCategoryService.getAllEventCategories());
+    }
 
     @PostMapping("/addFirstPageInfo")
     public ResponseEntity<?> addFirstPageInfo(@Valid @RequestPart (name = "eventFirstPageDetails") AddEventFirstPageDto addEventFirstPageDto,
@@ -210,7 +216,6 @@ public class EventController {
 
     @PostMapping("/addPromoCode")
     public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto) {
-        promoCodeDto.setUsername((String) httpSession.getAttribute("CurrentUser"));
 
         eventService.addPromoCode(promoCodeDto);
 

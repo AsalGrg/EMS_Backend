@@ -31,6 +31,7 @@ public interface EventRepository {
 
     List<Event> getPhysicalEvents(String eventTitle, String eventCountry);
 
+    List<Event> getAllOnlineEvents ();
     boolean existsByName(String name);
 
     boolean existsByNameButNotForDraft(String name, Integer eventId);

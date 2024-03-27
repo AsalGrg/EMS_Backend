@@ -79,6 +79,11 @@ public class StarringServiceImplementation implements StarringService {
         }
     }
 
+    @Override
+    public EventStarring getEventStarringByEventId(int eventId) {
+        return starringRepository.getEventStarringByEventId(eventId);
+    }
+
     public void updateEventStarring (EventStarringDetails eventStarringDetails, EventStarring eventStarring) {
 
         for (int index = 1; index < 5; index++) {

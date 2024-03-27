@@ -34,4 +34,11 @@ public class EventPhysicalLocationDetailsServiceImpl implements EventPhysicalLoc
                         build()
         );
     }
+
+    @Override
+    public void updatePhysicalLocationDetails(EventPhysicalLocationDetails eventPhysicalLocationDetails) {
+        eventPhysicalLocationRepo.savePhysicalLocationDetails(
+              eventPhysicalLocationDetails
+        );
+    }
 }

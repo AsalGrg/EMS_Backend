@@ -6,6 +6,8 @@ import com.backend.repositories.EventCategoryRepository;
 import com.backend.services.EventCategoryService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class EventCategoryServiceImplementation implements EventCategoryService {
     
@@ -15,6 +17,11 @@ public class EventCategoryServiceImplementation implements EventCategoryService 
             EventCategoryRepository eventCategoryRepository
     ){
         this.eventCategoryRepository= eventCategoryRepository;
+    }
+
+    @Override
+    public List<String> getAllEventCategories() {
+        return  eventCategoryRepository.getAllEventCategories();
     }
 
     @Override
