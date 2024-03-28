@@ -21,7 +21,7 @@ public class EventTicketRepoImpl implements EventTicketRepository {
 
         try {
             transaction = session.beginTransaction();
-            session.save(eventTicket);
+            session.merge(eventTicket);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

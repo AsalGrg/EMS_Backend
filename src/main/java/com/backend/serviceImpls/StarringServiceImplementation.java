@@ -35,41 +35,56 @@ public class StarringServiceImplementation implements StarringService {
 
     @Override
     public void saveStarring(EventStarringDetails eventStarringDetails, Event event) {
-        EventStarring eventStarring= new EventStarring();
-        for (int index=1; index<5; index++) {
 
-            try {
-                Method methodDet = eventStarringDetails.getClass().getMethod("getStarring" + index + "Photo");
+        EventStarring eventStarringFromDB = starringRepository.getEventStarringByEventId(event.getId());
 
-                MultipartFile starringImage = (MultipartFile) methodDet.invoke(eventStarringDetails);
+        if(eventStarringFromDB==null) {
+            EventStarring eventStarring = new EventStarring();
 
-                if(starringImage==null){
-                    continue;
+            for (int index=1; index<5; index++) {
+
+                try {
+                    Method methodDet = eventStarringDetails.getClass().getMethod("getStarring" + index + "Photo");
+
+                    MultipartFile starringImage = (MultipartFile) methodDet.invoke(eventStarringDetails);
+
+                    if(starringImage==null){
+                        continue;
+                    }
+
+                    Method methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Photo", String.class);
+                    methodEventStarring.invoke(eventStarring, uploadPhoto(starringImage));
+
+                    methodDet = eventStarringDetails.getClass().getMethod("getStarring" + index + "Name");
+                    methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Name", String.class);
+                    Method methodStarringPhotoName= eventStarring.getClass().getMethod("setStarring"+index+"ImgName", String.class);
+                    methodStarringPhotoName.invoke(eventStarring,starringImage.getOriginalFilename());
+
+                    String starringName= (String) methodDet.invoke(eventStarringDetails);
+                    methodEventStarring.invoke(eventStarring, starringName);
+
+                    eventStarring.setEvent(event);
+
+                    log.info("dfdfdfdf: "+ eventStarringDetails.getStarring2Name());
+
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
 
-                Method methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Photo", String.class);
-                methodEventStarring.invoke(eventStarring, uploadPhoto(starringImage));
-
-                methodDet = eventStarringDetails.getClass().getMethod("getStarring" + index + "Name");
-                methodEventStarring = eventStarring.getClass().getMethod("setStarring" + index + "Name", String.class);
-                String starringName= (String) methodDet.invoke(eventStarringDetails);
-                methodEventStarring.invoke(eventStarring, starringName);
-
-                eventStarring.setEvent(event);
-
-                log.info("dfdfdfdf: "+ eventStarringDetails.getStarring2Name());
-
-
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
-
+            starringRepository.saveStarring(eventStarring);
+        }else{
+            updateEventStarring(eventStarringDetails, eventStarringFromDB);
         }
-        starringRepository.saveStarring(eventStarring);
     }
 
-    public void updateEventStarring (EventStarringDetails eventStarringDetails, Event event) {
-        EventStarring eventStarring = starringRepository.getEventStarringByEventId(event.getId());
+    @Override
+    public EventStarring getEventStarringByEventId(int eventId) {
+        return starringRepository.getEventStarringByEventId(eventId);
+    }
+
+    public void updateEventStarring (EventStarringDetails eventStarringDetails, EventStarring eventStarring) {
 
         for (int index = 1; index < 5; index++) {
 
@@ -83,19 +98,22 @@ public class StarringServiceImplementation implements StarringService {
 
 
                 //savedstarring operations
+                methodStarringName = eventStarring.getClass().getMethod("getStarring"+index+"Name");
                 String savedStarringName = (String) methodStarringName.invoke(eventStarring);
+
+
                 Method methodStarringPhotoName= eventStarring.getClass().getMethod("getStarring"+index+"ImgName");
                 String savedStarringPhotoName = (String)methodStarringPhotoName.invoke(eventStarring);
 
-                Method methodStarringSetStarringPhoto = eventStarring.getClass().getMethod("setStarring"+index+"Photo");
-                Method methodStarringSetStarringImgName = eventStarring.getClass().getMethod("setStarring"+index+"ImgName");
-                Method methodStarringSetStarringName = eventStarring.getClass().getMethod("setStarring"+index+"Name");
+                Method methodStarringSetStarringPhoto = eventStarring.getClass().getMethod("setStarring"+index+"Photo", String.class);
+                Method methodStarringSetStarringImgName = eventStarring.getClass().getMethod("setStarring"+index+"ImgName", String.class);
+                Method methodStarringSetStarringName = eventStarring.getClass().getMethod("setStarring"+index+"Name", String.class);
 
 
                 if (newStarringImage == null) {
-                    methodStarringSetStarringPhoto.invoke(eventStarring, null);
-                    methodStarringSetStarringImgName.invoke(eventStarring,null);
-                    methodStarringSetStarringName.invoke(eventStarring, null);
+                    methodStarringSetStarringPhoto.invoke(eventStarring, (Object) null);
+                    methodStarringSetStarringImgName.invoke(eventStarring,(Object) null);
+                    methodStarringSetStarringName.invoke(eventStarring, (Object) null);
                     continue;
                 }
 
@@ -108,13 +126,11 @@ public class StarringServiceImplementation implements StarringService {
                     methodStarringSetStarringName.invoke(eventStarring, newStarringName);
                 }
 
-
-                starringRepository.saveStarring(eventStarring);
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
+        starringRepository.saveStarring(eventStarring);
     }
 
     private String uploadPhoto(MultipartFile photo){

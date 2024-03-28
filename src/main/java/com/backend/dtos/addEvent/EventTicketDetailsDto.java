@@ -18,6 +18,8 @@ import java.time.LocalTime;
 
 public class EventTicketDetailsDto {
 
+    @NotNull(message = "Event id is required")
+    private Integer eventId;
 
     @NotNull(message = "Ticket type is required")
     @NotEmpty(message = "Ticket type cannot be empty")

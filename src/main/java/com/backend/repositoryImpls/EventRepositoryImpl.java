@@ -102,13 +102,34 @@ public class EventRepositoryImpl implements EventRepository {
         return eventSecondPageDetails;
     }
 
+    @Override
+    public EventThirdPageDetails saveThirdPageDetails(EventThirdPageDetails eventThirdPageDetails) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            session.merge(eventThirdPageDetails);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace(); // Handle the exception appropriately
+        } finally {
+            session.close();
+        }
+
+        return eventThirdPageDetails;
+    }
+
 
     @Override
     public List<Event> getEventByLocation(String location) {
         Session session= sessionFactory.openSession();
-        Query<Event> eventQuery = session.createQuery("FROM Event et WHERE et.eventFirstPageDetails.eventLocation.locationName = :location AND et.isPrivate = false", Event.class);
+        Query<Event> eventQuery = session.createQuery("FROM Event et JOIN event_physical_location_details ep ON et.eventFirstPageDetails.eventLocation.id= ep.eventLocation.id WHERE ep.country = :location AND et.isPrivate = false AND et.eventStatus= 'completed'", Event.class);
+        eventQuery.setParameter("location", location);
         List<Event> events= eventQuery.getResultList();
-
         session.close();
         return events;
     }
@@ -177,6 +198,13 @@ public class EventRepositoryImpl implements EventRepository {
         Query<Event> eventQuery= session.createQuery("FROM Event e JOIN  EventLocation  el ON e.eventFirstPageDetails.eventLocation.id = el.id LEFT JOIN event_physical_location_details epld ON el.id = epld.eventLocation.id WHERE e.eventFirstPageDetails.name = :eventTitle AND el.locationType.locationTypeTitle = 'venue' AND epld.country = :eventCountry", Event.class);
         eventQuery.setParameter("eventTitle", eventTitle);
         eventQuery.setParameter("eventCountry", eventCountry);
+        return eventQuery.getResultList();
+    }
+
+    @Override
+    public List<Event> getAllOnlineEvents() {
+        Session session= sessionFactory.openSession();
+        Query<Event> eventQuery= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle='online'", Event.class);
         return eventQuery.getResultList();
     }
 

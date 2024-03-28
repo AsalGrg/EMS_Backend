@@ -12,4 +12,6 @@ import java.util.List;
 public interface StarringService {
 
     void saveStarring( EventStarringDetails eventStarringDetails, Event event);
+
+    EventStarring getEventStarringByEventId(int eventId);
 }

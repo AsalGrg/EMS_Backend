@@ -43,4 +43,5 @@ public class GlobalExceptionHandler {
     public @ResponseBody ErrorFormat handleIllegalStateException(IllegalStateException ex){
         return new ErrorFormat(ex.getMessage(), HttpStatus.BAD_REQUEST, LocalDate.now());
     }
+
 }

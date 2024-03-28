@@ -31,6 +31,7 @@ public interface EventRepository {
 
     List<Event> getPhysicalEvents(String eventTitle, String eventCountry);
 
+    List<Event> getAllOnlineEvents ();
     boolean existsByName(String name);
 
     boolean existsByNameButNotForDraft(String name, Integer eventId);
@@ -42,4 +43,6 @@ public interface EventRepository {
     EventFirstPageDetails saveFirstPageDetails(EventFirstPageDetails eventFirstPageDetails);
 
     EventSecondPageDetails saveSecondPageDetails(EventSecondPageDetails eventSecondPageDetails);
+
+    EventThirdPageDetails saveThirdPageDetails(EventThirdPageDetails eventThirdPageDetails);
 }

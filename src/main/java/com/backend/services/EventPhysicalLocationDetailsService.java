@@ -9,4 +9,5 @@ public interface EventPhysicalLocationDetailsService {
 
     EventPhysicalLocationDetails getEventPhysicalLocationDetailsByEventLocation(EventLocation eventLocation);
     void savePhysicalLocationDetails(EventPhysicalLocationDetailsDto eventPhysicalLocationDetailsDto, EventLocation eventLocation);
+    void updatePhysicalLocationDetails(EventPhysicalLocationDetails eventPhysicalLocationDetails);
 }

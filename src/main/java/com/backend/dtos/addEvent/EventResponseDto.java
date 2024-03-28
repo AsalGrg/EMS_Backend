@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -14,10 +15,12 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class EventResponseDto {
 
+    private int eventId;
     private String eventCoverImgUrl;
     private String eventName;
     private LocalDate startDate;
     private LocalDate endDate;
+    private LocalTime startTime;
     private String category;
     private String location_display_name;
     private double lat;
@@ -25,5 +28,6 @@ public class EventResponseDto {
     private String country;
     private String ticketType;
     private double ticketPrice;
+    private String organizerName;
 }
 

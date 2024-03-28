@@ -34,7 +34,7 @@ public class EventPhysicalLocationRepoImpl implements EventPhysicalLocationRepos
 
             try {
                 transaction = session.beginTransaction();
-                session.save(eventPhysicalLocationDetails);
+                session.merge(eventPhysicalLocationDetails);
                 transaction.commit();
             } catch (Exception e) {
                 if (transaction != null) {

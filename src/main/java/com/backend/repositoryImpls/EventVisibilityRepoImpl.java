@@ -21,7 +21,7 @@ public class EventVisibilityRepoImpl implements EventVisibilityRepository {
 
         try {
             transaction = session.beginTransaction();
-            session.save(eventVisibility);
+            session.merge(eventVisibility);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
