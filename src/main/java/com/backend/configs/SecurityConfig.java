@@ -42,7 +42,17 @@ public class SecurityConfig{
             "/addThirdPageDetails",
             "/draftSecondPageInfo",
             "addFourthPageDetails",
-            "/draftFourthPageDetails"
+            "/draftFourthPageDetails",
+            "/followVendor/{vendorId}",
+            "/unfollowVendor/{vendorId}",
+            "/likeEvent/{eventId}",
+            "/unlikeEvent/{eventId}",
+            "/getAllLikedEvents",
+            "/following",
+            "/getAllVendorEvents",
+            "/getEventInternalDescription/{eventId}",
+            "/addPromoCode",
+            "/makePayment"
     };
 
     private static final String[] PUBLIC_ROUTES = {
@@ -50,10 +60,14 @@ public class SecurityConfig{
             "/verify-otp",
             "/login",
             "/event_id/{id}",
+            "/event/{type}/{location}",
             "/search/{eventTitle}/{eventVenue}",
             "/search/quickSearch/{keyword}",
             "/place/{place}",
-            "/allCategories"
+            "/allCategories",
+            "/applyPromoCode/{promoCodeTitle}/{eventId}/{totalAmount}",
+            "deactivatePromoCode/{promoCodeId}",
+            "activatePromoCode/{promoCodeId}"
     };
     private JwtFilter jwtAuthFilter;
 

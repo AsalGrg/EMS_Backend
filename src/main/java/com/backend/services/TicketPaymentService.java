@@ -6,5 +6,5 @@ import com.backend.dtos.payment.PaymentResponseDto;
 
 public interface TicketPaymentService {
 
-    PaymentResponseDto makePayment(PaymentRequestDto paymentRequestDto);
+    void makePayment (PaymentRequestDto paymentRequestDto);
 }

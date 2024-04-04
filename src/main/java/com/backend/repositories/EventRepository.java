@@ -19,7 +19,9 @@ public interface EventRepository {
 
     List<Event> getEventByLocation(String location);
 
-    List<Event> getEventByType(String type);
+    List<Event> getEventByTypeAndLocation(String type, String location);
+
+    List<Event> getOnlineEventsByType(String type);
 
     List<Event> getAllEvents();
 

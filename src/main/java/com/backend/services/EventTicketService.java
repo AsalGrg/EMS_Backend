@@ -7,4 +7,6 @@ public interface EventTicketService {
 
     EventTicket saveEventTicket(EventTicketDetailsDto eventTicketDetailsDto);
     EventTicket updateEventTicket(EventTicketDetailsDto eventTicketDetailsDto, int eventTicketId);
+
+    EventTicket getEventTicket(int eventId);
 }

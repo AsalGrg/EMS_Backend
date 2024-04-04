@@ -71,6 +71,10 @@ public class AuthController {
         return new ResponseEntity<>(userService.getUserProfile(), HttpStatus.OK);
     }
 
+    @GetMapping("/following")
+    public ResponseEntity<?> getAllFollowingVendors(){
+        return  ResponseEntity.ok(userService.getAllFollowing());
+    }
 
 
     //just for testing purposes only, to be removed in the future

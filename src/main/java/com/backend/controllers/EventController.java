@@ -8,7 +8,9 @@ import com.backend.models.Event;
 import com.backend.models.EventPhysicalLocationDetails;
 import com.backend.services.EventCategoryService;
 import com.backend.services.EventService;
+import com.backend.services.FavouriteEventService;
 import com.backend.utils.IsImage;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +35,19 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
-
     private final EventCategoryService eventCategoryService;
+    private final FavouriteEventService favouriteEventService;
 
 
     @Autowired
     public EventController
-            (EventService eventService, EventCategoryService eventCategoryService){
+            (EventService eventService,
+             EventCategoryService eventCategoryService,
+             FavouriteEventService favouriteEventService
+             ){
         this.eventService= eventService;
         this.eventCategoryService= eventCategoryService;
+        this.favouriteEventService= favouriteEventService;
     }
 
 
@@ -50,9 +56,19 @@ public class EventController {
         return new ResponseEntity<>(eventService.getAllEvents(), HttpStatus.OK);
     }
 
+    @GetMapping("/getAllVendorEvents")
+    public ResponseEntity<?> getAllVendorEvents(){
+        return ResponseEntity.ok(eventService.getAllVendorEventsSnippets());
+    }
+
+    @GetMapping("/getEventInternalDescription/{eventId}")
+    public ResponseEntity<?> getEventInternalDetails(@PathVariable("eventId") int eventId){
+        return new ResponseEntity<>(eventService.getEventInternalDetails(eventId), HttpStatus.OK);
+    }
+
     @GetMapping("/event_id/{id}")
-    public ResponseEntity<?> getEventDetailsById(@PathVariable("id") int id) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        return new ResponseEntity<>(eventService.getAboutEventByEventId(id), HttpStatus.OK);
+    public ResponseEntity<?> getEventDetailsById(@PathVariable("id") int id, HttpServletRequest request) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return new ResponseEntity<>(eventService.getAboutEventByEventId(id, request), HttpStatus.OK);
     }
 
     @GetMapping("/place/{place}")
@@ -60,9 +76,12 @@ public class EventController {
         return new ResponseEntity<>(eventService.getEventByPlace(place), HttpStatus.OK);
     }
 
-    @GetMapping("/{type}")
-    public ResponseEntity<List<Event>> getEventByType(@PathVariable("type")String type){
-        return new ResponseEntity<>(eventService.getEventByType(type), HttpStatus.OK);
+    //the request is because if the user has token just in case so that we can track the vendors followed
+    @GetMapping("/event/{type}/{location}")
+    public ResponseEntity<?> getEventByType(@PathVariable("type")String type, @PathVariable("location") String location,
+                                            HttpServletRequest request
+                                            ){
+        return new ResponseEntity<>(eventService.getEventByTypeAndLocation(type, location, request), HttpStatus.OK);
     }
 
 
@@ -84,6 +103,23 @@ public class EventController {
     public ResponseEntity<?> getQuickSearchResults(@PathVariable("keyword") String keyword){
         List<EventResponseDto> searchedEvents= eventService.getQuickSearchResult(keyword);
         return new ResponseEntity<>(searchedEvents, HttpStatus.OK);
+    }
+
+    @GetMapping("/likeEvent/{eventId}")
+    public ResponseEntity<?> likeEvent(@PathVariable(name = "eventId") int eventId){
+        eventService.likeEvent(eventId);
+        return ResponseEntity.ok("Event liked successfully");
+    }
+
+    @GetMapping("/unlikeEvent/{eventId}")
+    public ResponseEntity<?> unlikeEvent(@PathVariable(name = "eventId") int eventId){
+        favouriteEventService.removeFavouriteEvent(eventId);
+        return ResponseEntity.ok("Event unliked successfully");
+    }
+
+    @GetMapping("/getAllLikedEvents")
+    public ResponseEntity<?> getAllLikedEvents(){
+        return ResponseEntity.ok(eventService.getAllUserLikedEvents());
     }
 
     @GetMapping("/trendingEvents")
@@ -215,7 +251,7 @@ public class EventController {
 //
 
     @PostMapping("/addPromoCode")
-    public ResponseEntity<?> addEvent(@Valid @RequestBody AddPromoCodeDto promoCodeDto) {
+    public ResponseEntity<?> addEvent(@Valid @RequestPart("promoCodeDetails") AddPromoCodeDto promoCodeDto) {
 
         eventService.addPromoCode(promoCodeDto);
 

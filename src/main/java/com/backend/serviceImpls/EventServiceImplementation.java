@@ -1,11 +1,13 @@
 package com.backend.serviceImpls;
 
-import com.backend.dtos.AddPromoCodeDto;
-import com.backend.dtos.SearchEventByFilterDto;
+import com.backend.configs.JwtUtils;
+import com.backend.dtos.*;
 import com.backend.dtos.aboutEvent.EachStarring;
 import com.backend.dtos.aboutEvent.EventDescriptionResponseDto;
 import com.backend.dtos.aboutEvent.TicketDetail;
 import com.backend.dtos.addEvent.*;
+import com.backend.dtos.vendor.EventInternalDetailsDto;
+import com.backend.dtos.vendor.PromoCodeDetailsDto;
 import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.NotAuthorizedException;
 import com.backend.exceptions.ResourceAlreadyExistsException;
@@ -13,6 +15,7 @@ import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.*;
 import com.backend.repositories.*;
 import com.backend.services.*;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,7 @@ import java.util.*;
 @Slf4j
 public class EventServiceImplementation implements EventService {
 
+    private final JwtUtils jwtUtils;
     private final EventRepository eventRepository;
 
     private LocationTypeService locationTypeService;
@@ -55,23 +59,29 @@ public class EventServiceImplementation implements EventService {
     private  StarringService starringService;
 
     private EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService;
-
+    private final VendorFollowerService vendorFollowerService;
+    private final FavouriteEventService favouriteEventService;
     private final CloudinaryUploadService cloudinaryUploadService;
 
 
     @Autowired
     public EventServiceImplementation
 
-            (EventRepository eventRepository, UserService userService
+            (EventRepository eventRepository,
+             JwtUtils jwtUtils,
+             UserService userService
             , PromoCodeService promoCodeService,VendorCredentialService vendorCredentialsService,
              EventLocationService eventLocationService, EventDateService eventDateService,
              EventTicketService eventTicketService, EventVisibilityService eventVisibilityService,
              EventCategoryService eventCategoryService,
              StarringService starringService,RoleService roleService, CloudinaryUploadService cloudinaryUploadServiceImpl,
              LocationTypeService locationTypeService,
-             EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService){
+             VendorFollowerService vendorFollowerService,
+             EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService,
+             FavouriteEventService favouriteEventService){
 
         this.eventRepository= eventRepository;
+        this.jwtUtils= jwtUtils;
         this.userService= userService;
         this.promoCodeService= promoCodeService;
         this.vendorCredentialsService= vendorCredentialsService;
@@ -84,7 +94,9 @@ public class EventServiceImplementation implements EventService {
         this.eventCategoryService = eventCategoryService;
         this.cloudinaryUploadService= cloudinaryUploadServiceImpl;
         this.eventPhysicalLocationDetailsService= eventPhysicalLocationDetailsService;
+        this.vendorFollowerService= vendorFollowerService;
         this.locationTypeService = locationTypeService;
+        this.favouriteEventService= favouriteEventService;
     }
 
     public EventResponseDto changeToEventDto(Event event, EventPhysicalLocationDetails physicalLocationDetails){
@@ -93,36 +105,56 @@ public class EventServiceImplementation implements EventService {
         EventSecondPageDetails eventSecondPageDetails = event.getEventSecondPageDetails();
         EventThirdPageDetails eventThirdPageDetails = event.getEventThirdPageDetails();
 
-        if(physicalLocationDetails==null) {
-            return EventResponseDto.builder().
-                    eventId(event.getId())
-                    .eventName(eventFirstPageDetails.getName())
-                    .eventCoverImgUrl(eventSecondPageDetails.getEventCoverPage())
-                    .startDate(eventFirstPageDetails.getEventDate().getEventStartDate())
-                    .endDate(eventFirstPageDetails.getEventDate().getEventEndDate())
-                    .startTime(eventFirstPageDetails.getEventDate().getEventStartTime())
-                    .category(eventFirstPageDetails.getEventCategory().getTitle())
-                    .ticketType(eventThirdPageDetails.getEventTicket().getTicketType().getTitle())
-                    .ticketPrice(eventThirdPageDetails.getEventTicket().getTicketPrice())
-                    .organizerName(event.getEventOrganizer().getUsername())
+        if (physicalLocationDetails == null) {
+            return EventResponseDto.builder()
+                    .eventId(event.getId())
+                    .eventStatus(event.getEventStatus())
+                    .pageStatus(event.getPageStatus())
+                    .eventName(eventFirstPageDetails != null ? eventFirstPageDetails.getName() : null)
+                    .eventCoverImgUrl(eventSecondPageDetails != null ? eventSecondPageDetails.getEventCoverPage() : null)
+                    .startDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartDate() : null)
+                    .endDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventEndDate() : null)
+                    .startTime(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartTime() : null)
+                    .ticketSalesEndDate(eventThirdPageDetails!=null && eventThirdPageDetails.getEventTicket()!=null? eventThirdPageDetails.getEventTicket().getTicketEndDate():null)
+                    .category(eventFirstPageDetails != null && eventFirstPageDetails.getEventCategory() != null ? eventFirstPageDetails.getEventCategory().getTitle() : null)
+                    .ticketType(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null && eventThirdPageDetails.getEventTicket().getTicketType() != null ? eventThirdPageDetails.getEventTicket().getTicketType().getTitle() : null)
+                    .ticketPrice(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketPrice() : null)
+                    .ticketsForSale(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketQuantity() : 0)
+                    .ticketsSold(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketSold() : 0)
+                    .organizerName(event.getEventOrganizer() != null ? event.getEventOrganizer().getUsername() : null)
+                    .country("")
+                    .location_display_name("")
+                    .lat(0)
+                    .lon(0)
                     .build();
         }
-        return EventResponseDto.builder().
-                eventId(event.getId())
-                .eventName(eventFirstPageDetails.getName())
-                .eventCoverImgUrl(eventSecondPageDetails.getEventCoverPage())
-                .startDate(eventFirstPageDetails.getEventDate().getEventStartDate())
-                .endDate(eventFirstPageDetails.getEventDate().getEventEndDate())
-                .startTime(eventFirstPageDetails.getEventDate().getEventStartTime())
-                .category(eventFirstPageDetails.getEventCategory().getTitle())
-                .ticketType(eventThirdPageDetails.getEventTicket().getTicketType().getTitle())
-                .ticketPrice(eventThirdPageDetails.getEventTicket().getTicketPrice())
+        return EventResponseDto.builder()
+                .eventId(event.getId())
+                .eventStatus(event.getEventStatus())
+                .pageStatus(event.getPageStatus())
+                .eventName(eventFirstPageDetails != null ? eventFirstPageDetails.getName() : null)
+                .eventCoverImgUrl(eventSecondPageDetails != null ? eventSecondPageDetails.getEventCoverPage() : null)
+                .startDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartDate() : null)
+                .endDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventEndDate() : null)
+                .startTime(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartTime() : null)
+                .ticketSalesEndDate(eventThirdPageDetails!=null && eventThirdPageDetails.getEventTicket()!=null? eventThirdPageDetails.getEventTicket().getTicketEndDate():null)
+                .category(eventFirstPageDetails != null && eventFirstPageDetails.getEventCategory() != null ? eventFirstPageDetails.getEventCategory().getTitle() : null)
+                .ticketType(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null && eventThirdPageDetails.getEventTicket().getTicketType() != null ? eventThirdPageDetails.getEventTicket().getTicketType().getTitle() : null)
+                .ticketPrice(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketPrice() : null)
+                .ticketsForSale(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketQuantity() : 0)
+                .ticketsSold(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketSold() : 0)
+                .organizerName(event.getEventOrganizer() != null ? event.getEventOrganizer().getUsername() : null)
                 .country(physicalLocationDetails.getCountry())
                 .location_display_name(physicalLocationDetails.getDisplayName())
                 .lat(physicalLocationDetails.getLat())
                 .lon(physicalLocationDetails.getLon())
-                .organizerName(event.getEventOrganizer().getUsername())
                 .build();
+    }
+
+    @Override
+    public void likeEvent(int eventId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        favouriteEventService.addFavouriteEvent(getEventById(eventId),userService.getUserByUsername(username).getUserId() );
     }
 
     @Override
@@ -134,11 +166,97 @@ public class EventServiceImplementation implements EventService {
         return event;
     }
 
-    public EventDescriptionResponseDto getAboutEventByEventId(int eventId) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        return covertToEventDescriptionDto(getEventById(eventId));
+    @Override
+    public List<EventResponseDto> getAllVendorEventsSnippets() {
+        String username= SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.getUserByUsername(username);
+        List<Event> events= eventRepository.getEventsByUser(user);
+        List<EventResponseDto> eventResponseDtos= new ArrayList<>();
+
+        for (Event event:
+             events) {
+            EventResponseDto eventResponseDto= changeToEventDto(event, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()));
+            eventResponseDtos.add(eventResponseDto);
+        }
+        return eventResponseDtos;
     }
 
-    private EventDescriptionResponseDto covertToEventDescriptionDto(Event event) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    @Override
+    public EventInternalDetailsDto getEventInternalDetails(int eventId) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Event event= getEventById(eventId);
+        User user = event.getEventOrganizer();
+
+        if(!username.equals(user.getUsername())){
+            throw new InternalServerError("Invalid request!");
+        }
+
+        EventResponseDto eventResponseDto= changeToEventDto(event, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()));
+
+        List<PromoCode> eventPromoCodes = promoCodeService.getPromoCodesOfEvent(event);
+        List<PromoCodeDetailsDto> promoCodeDetails = new ArrayList<>();
+
+        for (PromoCode promoCode:
+          eventPromoCodes   ) {
+
+            String merit;
+
+            if(promoCode.getPromoCodeType().getTitle().equals("Cash discount")){
+                merit= "Rs "+promoCode.getDiscount()+" off";
+            }else {
+                merit= promoCode.getDiscount()+" % off";
+            }
+
+            promoCodeDetails.add(
+                    PromoCodeDetailsDto
+                            .builder()
+                            .promCodeName(promoCode.getTitle())
+                            .expiryDate(promoCode.getExpiryDate())
+                            .merit(merit)
+                            .applicableFrom(promoCode.getApplicableOn())
+                            .limit(promoCode.getLimit())
+                            .available(promoCode.getAvailableQuantity())
+                            .isActive(promoCode.isActive())
+                            .build()
+            );
+        }
+        return EventInternalDetailsDto
+                .builder()
+                .eventBasicDetails(eventResponseDto)
+                .promoCodeDetailsDtos(promoCodeDetails)
+                .eventOrders(new ArrayList<>())//for testing only
+                .build();
+    }
+
+    public EventDescriptionResponseDto getAboutEventByEventId(int eventId, HttpServletRequest request) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return covertToEventDescriptionDto(getEventById(eventId), request);
+    }
+
+    @Override
+    public List<EventResponseDto> getAllUserLikedEvents() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        List<FavouriteEvents> userFavouriteEvents= favouriteEventService.getFavouriteEventsOfUser(userService.getUserByUsername(username).getUserId());
+        List<EventResponseDto> eventResponseDtos = new ArrayList<>();
+
+        for (FavouriteEvents favouriteEvent:
+             userFavouriteEvents) {
+            Event event= favouriteEvent.getEvent();
+            EventPhysicalLocationDetails eventPhysicalLocationDetails= eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation());
+            eventResponseDtos.add(changeToEventDto(event, eventPhysicalLocationDetails));
+        }
+        return eventResponseDtos;
+    }
+
+    @Override
+    public ApplyPromoCodeResponseDto isPromoCodeValid(String promoCode , int eventId, double totalAmount){
+
+        Event eventDetails = getEventById(eventId);
+        return promoCodeService.isPromoCodeValid(promoCode, eventDetails, totalAmount);
+    }
+    private EventDescriptionResponseDto covertToEventDescriptionDto(Event event, HttpServletRequest request) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         EventTicket eventTicket= event.getEventThirdPageDetails().getEventTicket();
         TicketDetail ticketDetail = TicketDetail
@@ -147,52 +265,103 @@ public class EventServiceImplementation implements EventService {
                 .ticketName(eventTicket.getTicketName())
                 .ticketPrice(eventTicket.getTicketPrice())
                 .ticketType(eventTicket.getTicketType().getTitle())
+                .ticketAvailableQuantity(eventTicket.getTicketQuantity())//to be ticket booked quantity - ticket initial quantity
+//                .hasPromoCode(promoCodeService.checkPromoCodeExistsInEvent(event))
+                .hasPromoCode(true)
                 .build();
 
         List<EachStarring> starrings = new ArrayList<>();
 
         EventStarring eventStarring = starringService.getEventStarringByEventId(event.getId());
 
-        for(int i =1; i<=5; i++){
+        if(eventStarring!=null){
 
-            Method methodStarringName = eventStarring.getClass().getMethod("getStarring"+i+"Name");
-            Method methodStarringImage = eventStarring.getClass().getMethod("getStarring" + i + "Photo");
+            for(int i =1; i<=5; i++){
 
-            String starringName= (String) methodStarringName.invoke(eventStarring);
-            String starringPhoto= (String) methodStarringImage.invoke(eventStarring);
+                Method methodStarringName = eventStarring.getClass().getMethod("getStarring"+i+"Name");
+                Method methodStarringImage = eventStarring.getClass().getMethod("getStarring" + i + "Photo");
 
-            if(starringPhoto==null){
-                continue;
+                String starringName= (String) methodStarringName.invoke(eventStarring);
+                String starringPhoto= (String) methodStarringImage.invoke(eventStarring);
+
+                if(starringPhoto==null){
+                    continue;
+                }
+                starrings.add(
+                        EachStarring
+                                .builder()
+                                .starringName(starringName)
+                                .starringPhoto(starringPhoto)
+                                .build()
+                );
             }
-            starrings.add(
-                    EachStarring
-                            .builder()
-                            .starringName(starringName)
-                            .starringPhoto(starringPhoto)
-                            .build()
-            );
         }
 
         EventFirstPageDetails eventFirstPageDetails= event.getEventFirstPageDetails();
         EventSecondPageDetails eventSecondPageDetails= event.getEventSecondPageDetails();
-        EventThirdPageDetails eventThirdPageDetails= event.getEventThirdPageDetails();
 
+        String usernameFromToken = jwtUtils.customFilterCheck(request);
+        User vendor = event.getEventOrganizer();
 
-        return EventDescriptionResponseDto
-                .builder()
-                .eventEndTime(eventFirstPageDetails.getEventDate().getEventEndTime())
-                .eventStartTime(eventFirstPageDetails.getEventDate().getEventEndTime())
-                .eventEndDate(eventFirstPageDetails.getEventDate().getEventEndDate())
-                .eventStartDate(eventFirstPageDetails.getEventDate().getEventStartDate())
-                .starrings(starrings)
-                .aboutEvent(eventSecondPageDetails.getAboutEvent())
-                .coverImage(eventSecondPageDetails.getEventCoverPage())
-                .eventTitle(eventFirstPageDetails.getName())
-                .hasStarring(eventSecondPageDetails.isHasStarring())
-                .physicalLocationDetails(eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()))
-                .locationType(eventFirstPageDetails.getEventLocation().getLocationType().getLocationTypeTitle())
-                .ticketDetails(ticketDetail)
-                .build();
+        VendorResponseDto vendorResponseDto;
+
+        if(usernameFromToken==null){
+            vendorResponseDto= VendorResponseDto
+                    .builder()
+                    .vendorProfile(vendor.getUserDp())
+                    .vendorId(vendor.getUserId())
+                    .vendorName(vendor.getUsername())
+                    .hasFollowed(false)
+                    .vendorFollowers(vendorFollowerService.getNoOfFollowers(vendor.getUserId()))
+                    .build();
+            return EventDescriptionResponseDto
+                    .builder()
+                    .eventId(event.getId())
+                    .eventEndTime(eventFirstPageDetails.getEventDate().getEventEndTime())
+                    .eventStartTime(eventFirstPageDetails.getEventDate().getEventEndTime())
+                    .eventEndDate(eventFirstPageDetails.getEventDate().getEventEndDate())
+                    .eventStartDate(eventFirstPageDetails.getEventDate().getEventStartDate())
+                    .starrings(starrings)
+                    .aboutEvent(eventSecondPageDetails.getAboutEvent())
+                    .coverImage(eventSecondPageDetails.getEventCoverPage())
+                    .eventTitle(eventFirstPageDetails.getName())
+                    .hasStarring(eventSecondPageDetails.isHasStarring())
+                    .physicalLocationDetails(eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()))
+                    .locationType(eventFirstPageDetails.getEventLocation().getLocationType().getLocationTypeTitle())
+                    .vendorDetails(vendorResponseDto)
+                    .ticketDetails(ticketDetail)
+                    .hasLiked(false)
+                    .build();
+
+        }else{
+            vendorResponseDto=VendorResponseDto
+                    .builder()
+                    .vendorProfile(vendor.getUserDp())
+                    .vendorId(vendor.getUserId())
+                    .vendorName(vendor.getUsername())
+                    .hasFollowed(vendorFollowerService.checkIfHasFollowedVendor(vendor.getUserId(), userService.getUserByUsername(usernameFromToken).getUserId()))
+                    .vendorFollowers(vendorFollowerService.getNoOfFollowers(vendor.getUserId()))
+                    .build();
+
+            return EventDescriptionResponseDto
+                    .builder()
+                    .eventId(event.getId())
+                    .eventEndTime(eventFirstPageDetails.getEventDate().getEventEndTime())
+                    .eventStartTime(eventFirstPageDetails.getEventDate().getEventEndTime())
+                    .eventEndDate(eventFirstPageDetails.getEventDate().getEventEndDate())
+                    .eventStartDate(eventFirstPageDetails.getEventDate().getEventStartDate())
+                    .starrings(starrings)
+                    .aboutEvent(eventSecondPageDetails.getAboutEvent())
+                    .coverImage(eventSecondPageDetails.getEventCoverPage())
+                    .eventTitle(eventFirstPageDetails.getName())
+                    .hasStarring(eventSecondPageDetails.isHasStarring())
+                    .physicalLocationDetails(eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()))
+                    .locationType(eventFirstPageDetails.getEventLocation().getLocationType().getLocationTypeTitle())
+                    .vendorDetails(vendorResponseDto)
+                    .ticketDetails(ticketDetail)
+                    .hasLiked(favouriteEventService.checkIfHasLikedEvent(userService.getUserByUsername(usernameFromToken).getUserId(), event.getId()))
+                    .build();
+        }
     }
 
     @Override
@@ -251,8 +420,63 @@ public class EventServiceImplementation implements EventService {
     }
 
     @Override
-    public List<Event> getEventByType(String type) {
-        return eventRepository.getEventByType(type);
+    public CategoryDetailsDto getEventByTypeAndLocation(String type, String location, HttpServletRequest request) {
+
+        String username = jwtUtils.customFilterCheck(request);
+
+        List<EventResponseDto> eventResponseDtos= new ArrayList<>();
+        List<Event> events;
+
+        if(location.equals("online")){
+            events= eventRepository.getOnlineEventsByType(type);
+        }else {
+            events= eventRepository.getEventByTypeAndLocation(type, location);
+        }
+        List<VendorResponseDto> vendorResponseDtos= new ArrayList<>();
+        Set<Integer> vendorIds= new HashSet<>();
+
+
+        for(Event event: events){
+            vendorIds.add(event.getEventOrganizer().getUserId());
+            if(event.getEventFirstPageDetails().getEventLocation().isPhysical()){
+                eventResponseDtos.add(changeToEventDto(event, getEventPhysicalLocationDetails(event.getEventFirstPageDetails().getEventLocation())));
+            }
+            else {
+                eventResponseDtos.add(changeToEventDto(event,null));
+            }
+        }
+
+        for(Integer vendorId: vendorIds){
+            User user = userService.getUserByUserId(vendorId);
+
+            if(username!=null){
+                vendorResponseDtos.add(
+                        VendorResponseDto.builder()
+                                .vendorId(vendorId)
+                                .vendorName(user.getUsername())
+                                .vendorFollowers(vendorFollowerService.getNoOfFollowers(vendorId))
+                                .vendorProfile(user.getUserDp())
+                                .hasFollowed(vendorFollowerService.checkIfHasFollowedVendor(vendorId, userService.getUserByUsername(username).getUserId()))
+                                .build()
+                );
+            }else {
+                vendorResponseDtos.add(
+                        VendorResponseDto.builder()
+                                .vendorId(vendorId)
+                                .vendorName(user.getUsername())
+                                .vendorFollowers(vendorFollowerService.getNoOfFollowers(vendorId))
+                                .vendorProfile(user.getUserDp())
+                                .hasFollowed(false)
+                                .build()
+                );
+            }
+        }
+
+
+        return CategoryDetailsDto.builder()
+                .categoryEvents(eventResponseDtos)
+                .categoryVendors(vendorResponseDtos)
+                .build();
     }
 
     @Override
@@ -685,7 +909,36 @@ public class EventServiceImplementation implements EventService {
 
     @Override
     public void addPromoCode(AddPromoCodeDto promoCodeDto){
-        promoCodeService.addPromocode(promoCodeDto, getEventByName(promoCodeDto.getName()));
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.getUserByUsername(username);
+
+        Event event= getEventById(promoCodeDto.getEventId());
+
+        if(user.getUserId()!= event.getEventOrganizer().getUserId()){
+            throw new NotAuthorizedException("Unauthorized add request");
+        }
+
+        promoCodeService.addPromocode(promoCodeDto, getEventById(promoCodeDto.getEventId()));
+    }
+
+    @Override
+    public void activePromoCode(int promoCodeId) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        PromoCode promoCode= promoCodeService.getPromoCodeByid(promoCodeId);
+        if(!promoCode.getEvent().getEventOrganizer().getUsername().equals(username))throw new NotAuthorizedException("Not authorized for the given action");
+
+        promoCodeService.activatePromoCode(promoCodeId);
+    }
+
+    @Override
+    public void deactivePromoCode(int promoCodeId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        PromoCode promoCode= promoCodeService.getPromoCodeByid(promoCodeId);
+        if(!promoCode.getEvent().getEventOrganizer().getUsername().equals(username))throw new NotAuthorizedException("Not authorized for the given action");
+
+        promoCodeService.deactivatePromoCode(promoCodeId);
     }
 
 }
