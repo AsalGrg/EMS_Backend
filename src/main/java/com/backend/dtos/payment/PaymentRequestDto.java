@@ -1,6 +1,7 @@
 package com.backend.dtos.payment;
 
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,17 +12,14 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class PaymentRequestDto {
 
-    private String username;
+    @NotNull(message = "Event Id is required")
+    private Integer event_id;
 
     @NotNull(message = "Provide the total amount to pay")
     private Double total_amount;
 
     @Value("1")
     private int quantity;//ticket quantity is 1 by default
-
-
-    @NotNull(message = "Event name should be provided")
-    private String event_name;
 
     private String promoCode;
 }

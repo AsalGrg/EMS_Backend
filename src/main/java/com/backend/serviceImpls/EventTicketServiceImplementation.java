@@ -57,4 +57,9 @@ public class EventTicketServiceImplementation implements EventTicketService {
                         .build()
         );
     }
+
+    @Override
+    public EventTicket getEventTicket(int eventId) {
+        return eventTicketRepository.getEventTicket(eventId);
+    }
 }

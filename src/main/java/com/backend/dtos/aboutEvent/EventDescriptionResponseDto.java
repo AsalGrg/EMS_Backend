@@ -1,5 +1,6 @@
 package com.backend.dtos.aboutEvent;
 
+import com.backend.dtos.VendorResponseDto;
 import com.backend.models.EventPhysicalLocationDetails;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class EventDescriptionResponseDto {
-
+    private int eventId;
     private String aboutEvent;
     private String coverImage;
     private LocalDate eventStartDate;
@@ -28,5 +29,8 @@ public class EventDescriptionResponseDto {
     private EventPhysicalLocationDetails physicalLocationDetails;
     private List<EachStarring> starrings;
     private TicketDetail ticketDetails;
-
+    private VendorResponseDto vendorDetails;
+    private boolean hasLiked;
+    private String ticketType;
+    private Double ticketPrice;
 }

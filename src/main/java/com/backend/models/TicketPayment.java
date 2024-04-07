@@ -3,6 +3,8 @@ package com.backend.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -18,17 +20,17 @@ public class TicketPayment {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "net_total")
-    private  double net_total;
-
     @Column(name = "grand_total")
     private double grand_total;
 
     @Column(name = "quantity")
     private int quantity;
 
-    @Column(name = "promocodeUsed")
-    private boolean promocodeUsed;
+    @Column(name = "promoCodeUsed")
+    private boolean promoCodeUsed;
+
+    @Column(name = "purchased_at")
+    private LocalDateTime purchasedAt;
 
     @JoinColumn(name = "user_id")
     @ManyToOne

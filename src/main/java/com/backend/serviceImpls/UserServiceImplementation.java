@@ -2,6 +2,7 @@ package com.backend.serviceImpls;
 
 import com.backend.configs.JwtUtils;
 import com.backend.dtos.LoginRegisterResponse;
+import com.backend.dtos.VendorResponseDto;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.dtos.internals.EmailVerificationServiceResponse;
 import com.backend.dtos.login.LoginUserDto;
@@ -29,9 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -45,7 +44,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     private EventRepository eventRepository;
     private JwtUtils jwtUtils;
     private final CloudinaryUploadService cloudinary;
-
+    private final VendorFollowerService vendorFollowerService;
     private EmailMessages emailMessages;
 
     @Autowired
@@ -58,7 +57,9 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
              EmailMessages emailMessages,
              JwtUtils jwtUtils,
              EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService,
-             EventRepository eventRepository){
+             EventRepository eventRepository,
+             VendorFollowerService vendorFollowerService
+             ){
 
         this.userRepository= userRepository;
         this.emailService=emailService;
@@ -69,6 +70,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         this.jwtUtils= jwtUtils;
         this.eventRepository= eventRepository;
         this.eventPhysicalLocationDetailsService= eventPhysicalLocationDetailsService;
+        this.vendorFollowerService= vendorFollowerService;
     }
 
     public LoginRegisterResponse registerAdmin(RegisterUserDto registerUserDto){
@@ -101,35 +103,102 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     }
 
     public EventResponseDto changeToEventDto(Event event, EventPhysicalLocationDetails physicalLocationDetails){
- /*       if(physicalLocationDetails==null) {
-            return EventResponseDto.builder().
-                    eventName(event.getName())
-                    .eventCoverImgUrl(event.getEventCoverPage())
-                    .startDate(event.getEventDate().getEventStartDate())
-                    .endDate(event.getEventDate().getEventEndDate())
-                    .category(event.getEventCategory().getTitle())
-                    .ticketType(event.getEventTicket().getTicketType().getTitle())
-                    .ticketPrice(event.getEventTicket().getTicketPrice())
+//        return new EventResponseDto(event.getName(), event.getEventDate().;, event.getPublished_date(), event.getEntryFee(),event.getEventType().getTitle());
+        EventFirstPageDetails eventFirstPageDetails = event.getEventFirstPageDetails();
+        EventSecondPageDetails eventSecondPageDetails = event.getEventSecondPageDetails();
+        EventThirdPageDetails eventThirdPageDetails = event.getEventThirdPageDetails();
+
+        if (physicalLocationDetails == null) {
+            return EventResponseDto.builder()
+                    .eventId(event.getId())
+                    .eventStatus(event.getEventStatus())
+                    .pageStatus(event.getPageStatus())
+                    .eventName(eventFirstPageDetails != null ? eventFirstPageDetails.getName() : null)
+                    .eventCoverImgUrl(eventSecondPageDetails != null ? eventSecondPageDetails.getEventCoverPage() : null)
+                    .startDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartDate() : null)
+                    .endDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventEndDate() : null)
+                    .startTime(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartTime() : null)
+                    .category(eventFirstPageDetails != null && eventFirstPageDetails.getEventCategory() != null ? eventFirstPageDetails.getEventCategory().getTitle() : null)
+                    .ticketType(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null && eventThirdPageDetails.getEventTicket().getTicketType() != null ? eventThirdPageDetails.getEventTicket().getTicketType().getTitle() : null)
+                    .ticketPrice(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketPrice() : null)
+                    .ticketsForSale(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketQuantity() : null)
+                    .ticketsSold(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketSold() : null)
+                    .organizerName(event.getEventOrganizer() != null ? event.getEventOrganizer().getUsername() : null)
+                    .country("")
+                    .location_display_name("")
+                    .lat(0)
+                    .lon(0)
                     .build();
         }
-        return EventResponseDto.builder().
-                eventName(event.getName())
-                .eventCoverImgUrl(event.getEventCoverPage())
-                .startDate(event.getEventDate().getEventStartDate())
-                .endDate(event.getEventDate().getEventEndDate())
-                .category(event.getEventCategory().getTitle())
-                .ticketType(event.getEventTicket().getTicketType().getTitle())
-                .ticketPrice(event.getEventTicket().getTicketPrice())
+        return EventResponseDto.builder()
+                .eventId(event.getId())
+                .eventStatus(event.getEventStatus())
+                .pageStatus(event.getPageStatus())
+                .eventName(eventFirstPageDetails != null ? eventFirstPageDetails.getName() : null)
+                .eventCoverImgUrl(eventSecondPageDetails != null ? eventSecondPageDetails.getEventCoverPage() : null)
+                .startDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartDate() : null)
+                .endDate(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventEndDate() : null)
+                .startTime(eventFirstPageDetails != null && eventFirstPageDetails.getEventDate() != null ? eventFirstPageDetails.getEventDate().getEventStartTime() : null)
+                .category(eventFirstPageDetails != null && eventFirstPageDetails.getEventCategory() != null ? eventFirstPageDetails.getEventCategory().getTitle() : null)
+                .ticketType(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null && eventThirdPageDetails.getEventTicket().getTicketType() != null ? eventThirdPageDetails.getEventTicket().getTicketType().getTitle() : null)
+                .ticketPrice(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketPrice() : null)
+                .ticketsForSale(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketQuantity() : null)
+                .ticketsSold(eventThirdPageDetails != null && eventThirdPageDetails.getEventTicket() != null ? eventThirdPageDetails.getEventTicket().getTicketSold() : null)
+                .organizerName(event.getEventOrganizer() != null ? event.getEventOrganizer().getUsername() : null)
                 .country(physicalLocationDetails.getCountry())
                 .location_display_name(physicalLocationDetails.getDisplayName())
                 .lat(physicalLocationDetails.getLat())
                 .lon(physicalLocationDetails.getLon())
-                .build();*/
-
-        return null;
+                .build();
     }
 
 
+    @Override
+    public User getUserByUserId(int userId) {
+        return userRepository.findByUserId(userId);
+    }
+
+    @Override
+    public void followUser(int vendorId) {
+        String username= SecurityContextHolder.getContext().getAuthentication().getName();
+        User followedBy =getUserByUsername(username);
+        User followedTo = getUserByUserId(vendorId);
+        vendorFollowerService.addFollower(followedTo,followedBy);
+    }
+
+    @Override
+    public void unFollowUser(int vendorId) {
+        String username= SecurityContextHolder.getContext().getAuthentication().getName();
+        User followedBy =getUserByUsername(username);
+        vendorFollowerService.removeFollower(vendorId, followedBy.getUserId());
+    }
+
+    @Override
+    public List<VendorResponseDto> getAllFollowing() {
+
+        String username= SecurityContextHolder.getContext().getAuthentication().getName();
+        User user =getUserByUsername(username);
+        List<VendorFollowers> vendorFollowers= vendorFollowerService.getAllUserFollowings(user.getUserId());
+        List<VendorResponseDto> vendorResponseDtos = new ArrayList<>();
+
+        for (VendorFollowers vendorFollower:
+             vendorFollowers) {
+
+            User vendor= vendorFollower.getFollowedTo();
+
+            vendorResponseDtos.add(
+
+                    VendorResponseDto.builder()
+                            .vendorId(vendor.getUserId())
+                            .vendorName(vendor.getUsername())
+                            .vendorFollowers(vendorFollowerService.getNoOfFollowers(vendor.getUserId()))
+                            .vendorProfile(user.getUserDp())
+                            .hasFollowed(vendorFollowerService.checkIfHasFollowedVendor(vendor.getUserId(), user.getUserId()))
+                            .build()
+            );
+        }
+        return vendorResponseDtos;
+    }
 
     @Override
     public RegisterResponse registerUser(RegisterUserDto registerUserDto) {

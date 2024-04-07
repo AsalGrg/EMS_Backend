@@ -135,9 +135,20 @@ public class EventRepositoryImpl implements EventRepository {
     }
 
     @Override
-    public List<Event> getEventByType(String type) {
+    public List<Event> getEventByTypeAndLocation(String type, String location) {
         Session session = sessionFactory.openSession();
-        Query<Event> query= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventCategory.title =:type ", Event.class);
+        Query<Event> query= session.createQuery("FROM Event er JOIN event_physical_location_details epl ON er.eventFirstPageDetails.eventLocation.id= epl.eventLocation.id WHERE er.eventFirstPageDetails.eventCategory.title =:type AND epl.country=:location", Event.class);
+        query.setParameter("type", type);
+        query.setParameter("location", location);
+        List<Event> events= query.getResultList();
+        session.close();
+        return events;
+    }
+
+    @Override
+    public List<Event> getOnlineEventsByType(String type){
+        Session session = sessionFactory.openSession();
+        Query<Event> query= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventCategory.title =:type AND er.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle='Online'", Event.class);
         query.setParameter("type", type);
         List<Event> events= query.getResultList();
         session.close();
@@ -235,7 +246,7 @@ public class EventRepositoryImpl implements EventRepository {
 
         Query<Event> getEventsByUser= session.createQuery("FROM Event e JOIN User u on e.eventOrganizer.id = u.id WHERE u.id =:user_id", Event.class);
 
-        getEventsByUser.setParameter("user_id", user.getUser_id());
+        getEventsByUser.setParameter("user_id", user.getUserId());
         return getEventsByUser.getResultList();
     }
 

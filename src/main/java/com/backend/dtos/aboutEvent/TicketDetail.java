@@ -14,4 +14,7 @@ public class TicketDetail {
     private String ticketName;
     private double ticketPrice;
     private String ticketType;
+    private int ticketAvailableQuantity;
+    private int initialTicketQuantity;
+    private boolean hasPromoCode;
 }

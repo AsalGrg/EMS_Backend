@@ -4,7 +4,9 @@ import com.backend.dtos.VendorDetailViewDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationRequestDto;
 import com.backend.dtos.vendorRegistration.VendorRegistrationResponse;
 import com.backend.services.EventService;
+import com.backend.services.UserService;
 import com.backend.services.VendorCredentialService;
+import com.backend.services.VendorFollowerService;
 import com.backend.utils.FileNotEmpty;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -27,20 +29,16 @@ import java.util.List;
 public class VendorController {
 
     private final VendorCredentialService vendorCredentialService;
-
-//    private final EventService eventService;
-
-    private final HttpSession httpSession;
-
-//    private final ObjectMapper objectMapper;
-
+    private final UserService userService;
     Logger logger= LoggerFactory.getLogger(VendorController.class);
 
-    public VendorController
-            (VendorCredentialService vendorCredentialService,HttpSession httpSession){
+    public VendorController(
+            VendorCredentialService vendorCredentialService,
+            UserService userService
+
+            ){
         this.vendorCredentialService= vendorCredentialService;
-//        this.eventService= eventService;
-        this.httpSession= httpSession;
+        this.userService = userService;
     }
 
     @GetMapping("/allVendors")
@@ -50,6 +48,21 @@ public class VendorController {
         return ResponseEntity.ok(allVendorsView);
     }
 
+
+    @GetMapping("/followVendor/{vendorId}")
+    public ResponseEntity<?> followVendor(@PathVariable("vendorId") int vendorId){
+        userService.followUser(vendorId);
+        return ResponseEntity.ok("Vendor Followed Successfully");
+    }
+
+
+    @GetMapping("/unfollowVendor/{vendorId}")
+    public ResponseEntity<?> unfollowVendor(@PathVariable("vendorId") int vendorId){
+        userService.unFollowUser(vendorId);
+        return ResponseEntity.ok("Vendor unfollowed Successfully");
+    }
+
+
     @PostMapping("/become-a-vendor")
     public ResponseEntity<?> becomeVendor(@RequestPart("vendorData") @Valid VendorRegistrationRequestDto vendorRegistrationRequestDto,
                                          @RequestPart("taxClearanceFile") @FileNotEmpty(value= MediaType.APPLICATION_PDF_VALUE , message = "Please note that we require a Tax Clearance Document in PDF format") MultipartFile taxClearanceFile,
@@ -57,7 +70,7 @@ public class VendorController {
                                           @RequestPart("vendorRegistrationFilledForm") @FileNotEmpty(value= MediaType.APPLICATION_PDF_VALUE , message = "Please note that we require a Filled Vendor Registration Form in PDF format") MultipartFile vendorRegistrationFilledForm
     ){
 
-        vendorRegistrationRequestDto.setUsername((String) this.httpSession.getAttribute("CurrentUser"));
+//        vendorRegistrationRequestDto.setUsername((String) this.httpSession.getAttribute("CurrentUser"));
 
         //setting the document files in the dto as:
         vendorRegistrationRequestDto.setTaxClearanceCertificate(taxClearanceFile);
@@ -72,7 +85,7 @@ public class VendorController {
 
     @PostMapping("/addEvent-request-action/{eventName}/{action}")
     public ResponseEntity<?> addEventVendorRequestAction(@PathVariable("eventName") String eventName, @PathVariable("action")String action){
-        String username = (String)httpSession.getAttribute("CurrentUser");
+//        String username = (String)httpSession.getAttribute("CurrentUser");
 
 //        eventService.addEventVendorRequestAction(username, action, eventName);
 
