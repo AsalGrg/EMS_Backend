@@ -52,7 +52,14 @@ public class SecurityConfig{
             "/getAllVendorEvents",
             "/getEventInternalDescription/{eventId}",
             "/addPromoCode",
-            "/makePayment"
+            "/makePayment",
+            "/getAllVendorEventOrders",
+            "/edit/event_id/{id}",
+            "/draft/event_id/{id}",
+            "/getEditProfileDetails",
+            "/editProfile",
+            "/getAllEventRequests",
+            "/updateEventRequest/{eventId}/{action}"
     };
 
     private static final String[] PUBLIC_ROUTES = {
@@ -67,7 +74,11 @@ public class SecurityConfig{
             "/allCategories",
             "/applyPromoCode/{promoCodeTitle}/{eventId}/{totalAmount}",
             "deactivatePromoCode/{promoCodeId}",
-            "activatePromoCode/{promoCodeId}"
+            "activatePromoCode/{promoCodeId}",
+            "/getAllCollections",
+//            for testing, should be on admin
+            "/addCollection",
+            "/user/profile/{id}"
     };
     private JwtFilter jwtAuthFilter;
 

@@ -25,6 +25,7 @@ public class EventResponseDto {
     private LocalTime startTime;
     private LocalDate ticketSalesEndDate;
     private String category;
+    private String locationType;
     private String location_display_name;
     private double lat;
     private double lon;
@@ -34,5 +35,6 @@ public class EventResponseDto {
     private Integer ticketsForSale;
     private Integer ticketsSold;
     private String organizerName;
+    private int organizerFollowers;
 }
 

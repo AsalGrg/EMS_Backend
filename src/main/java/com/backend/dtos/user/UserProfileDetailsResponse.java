@@ -1,5 +1,6 @@
 package com.backend.dtos.user;
 
+import com.backend.dtos.EditProfileDetails;
 import com.backend.dtos.addEvent.EventResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class UserProfileDetailsResponse {
 
-    private UserSnippetDetails userSnippetDetails;
+    private EditProfileDetails userSnippetDetails;
 
     private int noOfEvents;
 
@@ -21,12 +22,5 @@ public class UserProfileDetailsResponse {
 
     private List<EventResponseDto> upcomingEvents;
 
-    @Data
-    @Builder
-    public static class UserSnippetDetails{
-        private String userCoverImage;
-        private String userDp;
-        private String username;
-        private String userIntro;
-    }
+    private boolean isUserProfile;
 }

@@ -23,6 +23,15 @@ public class EventRepositoryImpl implements EventRepository {
     private SessionFactory sessionFactory;
 
     @Override
+    public List<Event> getAllPendingEvents() {
+        Session session = sessionFactory.openSession();
+        Query<Event> query= session.createQuery("FROM Event er WHERE er.eventStatus='pending'", Event.class);
+        List<Event> events= query.getResultList();
+        session.close();
+        return events;
+    }
+
+    @Override
     public Event getEventById(int id) {
         Session session= sessionFactory.openSession();
         Query<Event> query = session.createQuery("FROM Event et WHERE et.id =: id", Event.class);
@@ -104,6 +113,8 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public EventThirdPageDetails saveThirdPageDetails(EventThirdPageDetails eventThirdPageDetails) {
+
+        log.info("TICKET SOLD: "+ eventThirdPageDetails.getEventTicket().getTicketSold());
         Session session = sessionFactory.openSession();
         Transaction transaction = null;
 
@@ -215,7 +226,7 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public List<Event> getAllOnlineEvents() {
         Session session= sessionFactory.openSession();
-        Query<Event> eventQuery= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle='online'", Event.class);
+        Query<Event> eventQuery= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle='online' AND er.eventStatus='completed'", Event.class);
         return eventQuery.getResultList();
     }
 
@@ -244,7 +255,18 @@ public class EventRepositoryImpl implements EventRepository {
     public List<Event> getEventsByUser(User user) {
         Session session= sessionFactory.openSession();
 
-        Query<Event> getEventsByUser= session.createQuery("FROM Event e JOIN User u on e.eventOrganizer.id = u.id WHERE u.id =:user_id", Event.class);
+        Query<Event> getEventsByUser= session.createQuery("FROM Event e JOIN User u on e.eventOrganizer.id = u.id WHERE u.id =:user_id ", Event.class);
+
+        getEventsByUser.setParameter("user_id", user.getUserId());
+        return getEventsByUser.getResultList();
+    }
+
+
+    @Override
+    public List<Event> getEventsForUserProfile(User user) {
+        Session session= sessionFactory.openSession();
+
+        Query<Event> getEventsByUser= session.createQuery("FROM Event e JOIN User u on e.eventOrganizer.id = u.id WHERE u.id =:user_id AND e.eventVisibility.visibilityType.title='public' AND e.eventStatus='completed'", Event.class);
 
         getEventsByUser.setParameter("user_id", user.getUserId());
         return getEventsByUser.getResultList();

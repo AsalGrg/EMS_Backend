@@ -119,10 +119,10 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
         String discountType;
         if(promoCodeDetails.getPromoCodeType().getTitle().equals("Cash discount")){
             discountAmount= promoCodeDetails.getDiscount();
-            discountType= "Rs "+discountAmount+" off";
+            discountType= "Rs "+discountAmount+" OFF";
         } else if (promoCodeDetails.getPromoCodeType().getTitle().equals("Percentage discount")){
             discountAmount= total * (promoCodeDetails.getDiscount()/100);
-            discountType= promoCodeDetails.getDiscount()+" % off";
+            discountType= promoCodeDetails.getDiscount()+" % OFF";
         }else {
             throw new InternalServerError("Invalid promo code type");
         }
@@ -131,10 +131,12 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
 
         ApplyPromoCodeResponseDto applyPromoCodeResponseDto = ApplyPromoCodeResponseDto
                 .builder()
+                .promoCode(promoCode)
                 .netTotal(total)
                 .discountAmount(discountAmount)
                 .grandTotal(grandTotal)
                 .discountType(discountType)
+                .validTill(promoCodeDetails.getExpiryDate())
                 .build();
 
         return applyPromoCodeResponseDto;
@@ -160,6 +162,18 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
     @Override
     public void deactivatePromoCode(int promoCodeId) {
         promocodeRepository.updateActiveStatusById(promoCodeId, false);
+    }
+
+    @Override
+    public void updatePromoCodeUsed(PromoCode promoCode) {
+        if(promoCode.getLimit().equals("No limit")){
+            return;
+        }
+        int availableQuantity = Integer.parseInt(promoCode.getAvailableQuantity());
+        availableQuantity= availableQuantity-1;
+
+        promoCode.setAvailableQuantity(String.valueOf(availableQuantity));
+        savePromoCode(promoCode);
     }
 
 }

@@ -1,12 +1,14 @@
 package com.backend.controllers;
 
 
+import com.backend.dtos.EditProfileDetails;
 import com.backend.dtos.LoginRegisterResponse;
 import com.backend.dtos.login.LoginUserDto;
 import com.backend.dtos.register.RegisterResponse;
 import com.backend.dtos.register.RegisterUserDto;
 import com.backend.dtos.register.VerifyOtpRequest;
 import com.backend.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -66,15 +69,34 @@ public class AuthController {
 
     @GetMapping("/user/profile")
     public ResponseEntity<?> getUserDetails(){
-        userService.getUserDetails();
-
         return new ResponseEntity<>(userService.getUserProfile(), HttpStatus.OK);
+    }
+
+    @GetMapping("/user/profile/{id}")
+    public ResponseEntity<?> getUserDetails(@PathVariable("id") int userId, HttpServletRequest request){
+        return new ResponseEntity<>(userService.getUserProfileByUserId(userId, request), HttpStatus.OK);
     }
 
     @GetMapping("/following")
     public ResponseEntity<?> getAllFollowingVendors(){
         return  ResponseEntity.ok(userService.getAllFollowing());
     }
+
+    @GetMapping("/getEditProfileDetails")
+    public ResponseEntity<?> getEditProfileDetails(){
+        return ResponseEntity.ok(userService.getEditProfileDetails());
+    }
+    @PostMapping("/editProfile")
+    public ResponseEntity<?> editProfile(@RequestPart("editProfileDetails") EditProfileDetails editProfileDetails, @RequestPart(value = "userDp", required = false)MultipartFile userDp){
+
+        if (editProfileDetails.getProfileDp()==null){
+            editProfileDetails.setProfileDp(userDp);
+        }
+
+        userService.editProfile(editProfileDetails);
+        return  ResponseEntity.ok("Profile edited successfully");
+    }
+
 
 
     //just for testing purposes only, to be removed in the future

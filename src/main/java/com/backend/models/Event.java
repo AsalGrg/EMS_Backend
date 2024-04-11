@@ -4,6 +4,8 @@ package com.backend.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Builder
@@ -46,6 +48,9 @@ public class Event {
     @OneToOne
     @JoinColumn(name = "event_third_page_details")
     private EventThirdPageDetails eventThirdPageDetails;
+
+    @Column(name = "event_added_date")
+    private LocalDate eventAddedDate;
 
 }
 

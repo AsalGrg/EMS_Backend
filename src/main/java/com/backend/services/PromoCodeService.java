@@ -24,9 +24,8 @@ public interface PromoCodeService {
     public ApplyPromoCodeResponseDto isPromoCodeValid(String promoCode, Event event, double total);
 
     boolean checkPromoCodeExistsInEvent (Event event);
-
     List<PromoCode> getPromoCodesOfEvent(Event event);
-
     void activatePromoCode(int promoCodeId);
     void deactivatePromoCode(int promoCodeId);
+    void updatePromoCodeUsed(PromoCode promoCode);
 }

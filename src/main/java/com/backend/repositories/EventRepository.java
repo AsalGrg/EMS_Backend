@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface EventRepository {
 
+    List<Event> getAllPendingEvents();
     Event getEventById(int id);
 
     Optional<Event> getEventByName(String name);
@@ -39,6 +40,8 @@ public interface EventRepository {
     boolean existsByNameButNotForDraft(String name, Integer eventId);
 
     List<Event> getEventsByUser(User user);
+
+    List<Event> getEventsForUserProfile(User user);
 
     List<Event> getQuickSearchResult(String keyword);
 

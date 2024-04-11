@@ -49,7 +49,7 @@ public class TicketPaymentController {
     }
 
     @PostMapping("/makePayment")
-    public ResponseEntity<?> makePayment(@Valid @RequestBody PaymentRequestDto paymentRequestDto){
+    public ResponseEntity<?> makePayment(@Valid @RequestPart("paymentDetails") PaymentRequestDto paymentRequestDto){
 
         ticketPaymentService.makePayment(paymentRequestDto);
 

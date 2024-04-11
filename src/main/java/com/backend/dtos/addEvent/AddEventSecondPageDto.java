@@ -16,7 +16,7 @@ public class AddEventSecondPageDto {
     @NotNull(message = "Event Id is required")
     private Integer eventId;
 
-    private MultipartFile eventCoverImage;
+    private Object eventCoverImage;
 
     @NotNull(message = "About event cannot be null")
     @NotEmpty(message = "About event cannot be empty")

@@ -18,7 +18,7 @@ public class EventLocation {
     private Integer id;
 
     @Column(name = "location_name")
-    private String locationName;
+    private String locationName;//can be used as meeting link
 
     @ManyToOne
     @JoinColumn(name = "location_type_id")

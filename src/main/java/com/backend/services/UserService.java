@@ -1,5 +1,6 @@
 package com.backend.services;
 
+import com.backend.dtos.EditProfileDetails;
 import com.backend.dtos.LoginRegisterResponse;
 import com.backend.dtos.VendorResponseDto;
 import com.backend.dtos.login.LoginUserDto;
@@ -9,6 +10,7 @@ import com.backend.dtos.register.VerifyOtpRequest;
 import com.backend.dtos.user.UserLoggedInSnippetResponse;
 import com.backend.dtos.user.UserProfileDetailsResponse;
 import com.backend.models.User;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
@@ -34,5 +36,11 @@ public interface UserService {
     UserLoggedInSnippetResponse getUserDetails();
 
     UserProfileDetailsResponse getUserProfile();
+
+    UserProfileDetailsResponse getUserProfileByUserId(int userId, HttpServletRequest request);
+
+    EditProfileDetails getEditProfileDetails();
+
+    void editProfile(EditProfileDetails editProfileDetails);
 
 }

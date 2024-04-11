@@ -17,4 +17,5 @@ public class VendorResponseDto {
     private String vendorProfile;
     private int vendorFollowers;
     private boolean hasFollowed;
+    private boolean isOwner;
 }

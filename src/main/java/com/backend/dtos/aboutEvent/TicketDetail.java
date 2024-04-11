@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,7 +16,9 @@ public class TicketDetail {
     private String ticketName;
     private double ticketPrice;
     private String ticketType;
+    private LocalDate salesEndDate;
     private int ticketAvailableQuantity;
     private int initialTicketQuantity;
     private boolean hasPromoCode;
+    private boolean isSoldOut;
 }

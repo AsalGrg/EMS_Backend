@@ -50,6 +50,9 @@ public class User implements UserDetails {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "user_bio")
+    private String userBio;
+
     @Column(name = "is_enabled")
     private boolean isEnabled;
 

@@ -4,9 +4,11 @@ import com.backend.models.EventLocation;
 import com.backend.repositories.EventLocationRepository;
 import com.backend.services.EventLocationService;
 import com.backend.services.LocationTypeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class EventLocationServiceImplementation implements EventLocationService {
 
     private EventLocationRepository eventLocationRepository;
@@ -24,7 +26,10 @@ public class EventLocationServiceImplementation implements EventLocationService 
     @Override
     public EventLocation saveEventLocation(String locationType, String eventLocation) {
         EventLocation eventLocationObj;
-        if(locationType.equals("online")){
+
+        log.info("location type", locationType);
+        if(locationType.equals("Online")){
+            log.info("ONLINE");
             eventLocationObj=EventLocation.
                     builder()
                     .locationName(eventLocation)
@@ -33,6 +38,8 @@ public class EventLocationServiceImplementation implements EventLocationService 
                     .build();
         }
         else {
+
+            log.info("PHYSICALL");
             eventLocationObj=EventLocation.
                     builder()
                     .locationName(eventLocation)

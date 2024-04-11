@@ -2,6 +2,8 @@ package com.backend.controllers;
 
 
 import com.backend.dtos.AddPromoCodeDto;
+import com.backend.dtos.EventAccessDetails;
+import com.backend.dtos.EventCollectionSnippet;
 import com.backend.dtos.SearchEventByFilterDto;
 import com.backend.dtos.addEvent.*;
 import com.backend.models.Event;
@@ -66,13 +68,35 @@ public class EventController {
         return new ResponseEntity<>(eventService.getEventInternalDetails(eventId), HttpStatus.OK);
     }
 
-    @GetMapping("/event_id/{id}")
-    public ResponseEntity<?> getEventDetailsById(@PathVariable("id") int id, HttpServletRequest request) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        return new ResponseEntity<>(eventService.getAboutEventByEventId(id, request), HttpStatus.OK);
+    @GetMapping("/getAllVendorEventOrders")
+    public ResponseEntity<?> getAllVendorEventsOrder(){
+        return new ResponseEntity<>(eventService.getAllVendorOrders(), HttpStatus.OK);
     }
 
+    @PostMapping("/event_id/{id}")
+    public ResponseEntity<?> getEventDetailsById(@PathVariable("id") int id, @RequestPart(name = "eventAccessDetails",required = false)EventAccessDetails eventAccessDetails, HttpServletRequest request) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        log.info("Herrre");
+        if(eventAccessDetails!=null){
+            log.info(String.valueOf(id));
+            log.info(eventAccessDetails.getAccessPassword());
+        }
+        return new ResponseEntity<>(eventService.getAboutEventByEventId(id, request, eventAccessDetails), HttpStatus.OK);
+    }
+
+    @GetMapping("/draft/event_id/{id}")
+    public ResponseEntity<?> getEventDraftDetails(@PathVariable("id") int id) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return new ResponseEntity<>(eventService.getEventDraftDetails(id), HttpStatus.OK);
+    }
+
+    @GetMapping("/edit/event_id/{id}")
+    public ResponseEntity<?> getEventEditDetails(@PathVariable("id") int id) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return new ResponseEntity<>(eventService.getEventEditDetails(id), HttpStatus.OK);
+    }
+
+
     @GetMapping("/place/{place}")
-    public ResponseEntity<List<EventResponseDto>> getEventByPlace(@PathVariable("place") String place){
+    public ResponseEntity<?> getEventByPlace(@PathVariable("place") String place){
+        log.info(place);
         return new ResponseEntity<>(eventService.getEventByPlace(place), HttpStatus.OK);
     }
 
@@ -101,6 +125,7 @@ public class EventController {
 
     @GetMapping("/search/quickSearch/{keyword}")
     public ResponseEntity<?> getQuickSearchResults(@PathVariable("keyword") String keyword){
+        log.info("Keyword: ", keyword);
         List<EventResponseDto> searchedEvents= eventService.getQuickSearchResult(keyword);
         return new ResponseEntity<>(searchedEvents, HttpStatus.OK);
     }
@@ -147,7 +172,7 @@ public class EventController {
     @PostMapping("/addSecondPageInfo")
     public ResponseEntity<?> addSecondPageInfo (
             @Valid @RequestPart(name = "eventSecondPageDetails") AddEventSecondPageDto addEventSecondPageDto,
-            @IsImage @RequestPart(name = "eventCoverImage") MultipartFile eventCoverImage,
+            @RequestPart(name = "eventCoverImage", required = false) MultipartFile eventCoverImage,
             @Valid @RequestPart(name = "eventStarringDetails", required = false) EventStarringDetails eventStarringDetails,
             @RequestPart(name = "starring1Photo", required = false) MultipartFile starring1Photo,
             @RequestPart(name = "starring2Photo", required = false) MultipartFile starring2Photo,
@@ -156,13 +181,24 @@ public class EventController {
             @RequestPart(name = "starring5Photo", required = false) MultipartFile starring5Photo
     ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        addEventSecondPageDto.setEventCoverImage(eventCoverImage);
+        if(addEventSecondPageDto.getEventCoverImage()==null){
+            addEventSecondPageDto.setEventCoverImage(eventCoverImage);
+        }
 
         MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
-        for (int i = 0; i < multipartFiles.length; i++) {
-            if (multipartFiles[i] != null) {
-                Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", MultipartFile.class);
-                method.invoke(eventStarringDetails, multipartFiles[i]);
+
+        if(eventStarringDetails!=null){
+            for (int i= 0; i < multipartFiles.length; i++) {
+                Method getMethod = eventStarringDetails.getClass().getMethod("getStarring" + (i + 1) + "Photo");
+                Object starringPhotoLink = getMethod.invoke(eventStarringDetails);
+
+                if (starringPhotoLink != null) continue;
+
+                if (multipartFiles[i] != null) {
+
+                    Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", Object.class);
+                    method.invoke(eventStarringDetails, multipartFiles[i]);
+                }
             }
         }
 
@@ -183,14 +219,27 @@ public class EventController {
             @RequestPart(name = "starring5Photo", required = false) MultipartFile starring5Photo
     ) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        addEventSecondPageDto.setEventCoverImage(eventCoverImage);
+        if(addEventSecondPageDto.getEventCoverImage()==null){
+            addEventSecondPageDto.setEventCoverImage(eventCoverImage);
+        }
+
         MultipartFile[] multipartFiles = {starring1Photo, starring2Photo, starring3Photo, starring4Photo, starring5Photo};
-        for (int i = 0; i < multipartFiles.length; i++) {
-            if (multipartFiles[i] != null) {
-                Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", MultipartFile.class);
-                method.invoke(eventStarringDetails, multipartFiles[i]);
+
+        if(eventStarringDetails!=null){
+            for (int i= 0; i < multipartFiles.length; i++) {
+                Method getMethod = eventStarringDetails.getClass().getMethod("getStarring" + (i + 1) + "Photo");
+                Object starringPhotoLink = getMethod.invoke(eventStarringDetails);
+
+                if (starringPhotoLink != null) continue;
+
+                if (multipartFiles[i] != null) {
+
+                    Method method = eventStarringDetails.getClass().getMethod("setStarring" + (i + 1) + "Photo", Object.class);
+                    method.invoke(eventStarringDetails, multipartFiles[i]);
+                }
             }
         }
+
         eventService.addEventSecondPageDetails(addEventSecondPageDto, eventStarringDetails);
 
         return ResponseEntity.ok("Second Page Details added successfully");
@@ -256,5 +305,29 @@ public class EventController {
         eventService.addPromoCode(promoCodeDto);
 
         return new ResponseEntity<>("Promo code Added Successfully", HttpStatus.OK);
+    }
+
+    @PostMapping("/addCollection")
+    public ResponseEntity<?> addCollection (@IsImage @RequestPart("collectionCoverImg") MultipartFile coverImage, @RequestPart("eventCollectionDetails") EventCollectionSnippet eventCollectionSnippet){
+        eventCollectionSnippet.setCoverImg(coverImage);
+        eventService.addEventCollection(eventCollectionSnippet);
+        return new ResponseEntity<>("Event collection added successfully", HttpStatus.OK);
+    }
+
+    @GetMapping("/getAllCollections")
+    public ResponseEntity<?>  getAllCollections (){
+        return new ResponseEntity<>(eventService.getAllEventCollections(), HttpStatus.OK);
+    }
+
+    @GetMapping("/getAllEventRequests")
+    public ResponseEntity<?> getAllEventRequests(){
+        return new ResponseEntity<>(eventService.getAllEventRequests(), HttpStatus.OK);
+    }
+
+    @GetMapping("/updateEventRequest/{eventId}/{action}")
+    public ResponseEntity<?> getAllEventRequests(@PathVariable(name = "eventId") int eventId, @PathVariable(name = "action") String action){
+        eventService.updateEventRequest(eventId, action);
+        return new ResponseEntity<>( HttpStatus.OK);
+
     }
 }

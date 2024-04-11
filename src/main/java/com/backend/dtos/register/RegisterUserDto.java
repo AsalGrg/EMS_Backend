@@ -27,12 +27,8 @@ public class RegisterUserDto {
     @Size(max = 12, min = 6, message = "Password must be of 6-12 characters")
     private String password;
 
-    @NotEmpty(message = "Address cannot be empty")
-    @NotNull(message = "Address is required")
     private String address;
 
-    @NotNull(message = "Phone number is required")
-    @NotEmpty(message = "Phone number cannot be empty")
     private String phoneNumber;
 
     private MultipartFile userDp;

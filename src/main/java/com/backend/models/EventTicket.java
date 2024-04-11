@@ -31,7 +31,6 @@ public class EventTicket {
     @Column(name = "ticket_name")
     private String ticketName;
 
-
     @Column(name = "ticket_quantity")
     private int ticketQuantity;
 

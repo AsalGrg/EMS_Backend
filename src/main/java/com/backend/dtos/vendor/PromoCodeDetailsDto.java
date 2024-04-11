@@ -10,7 +10,7 @@ import java.time.LocalTime;
 @Builder
 
 public class PromoCodeDetailsDto {
-
+    private int promoCodeId;
     private String promCodeName;
     private LocalDate expiryDate;
     private String merit;

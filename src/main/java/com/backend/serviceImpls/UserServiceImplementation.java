@@ -1,6 +1,7 @@
 package com.backend.serviceImpls;
 
 import com.backend.configs.JwtUtils;
+import com.backend.dtos.EditProfileDetails;
 import com.backend.dtos.LoginRegisterResponse;
 import com.backend.dtos.VendorResponseDto;
 import com.backend.dtos.addEvent.EventResponseDto;
@@ -17,8 +18,10 @@ import com.backend.models.*;
 import com.backend.repositories.EventRepository;
 import com.backend.repositories.RoleRepository;
 import com.backend.repositories.UserRepository;
+import com.backend.repositories.UserSocailRepository;
 import com.backend.services.*;
 import com.backend.utils.EmailMessages;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -27,6 +30,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +50,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     private final CloudinaryUploadService cloudinary;
     private final VendorFollowerService vendorFollowerService;
     private EmailMessages emailMessages;
+    private UserSocailRepository userSocailRepository;
 
     @Autowired
     public UserServiceImplementation
@@ -58,7 +63,8 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
              JwtUtils jwtUtils,
              EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService,
              EventRepository eventRepository,
-             VendorFollowerService vendorFollowerService
+             VendorFollowerService vendorFollowerService,
+             UserSocailRepository userSocailRepository
              ){
 
         this.userRepository= userRepository;
@@ -71,6 +77,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         this.eventRepository= eventRepository;
         this.eventPhysicalLocationDetailsService= eventPhysicalLocationDetailsService;
         this.vendorFollowerService= vendorFollowerService;
+        this.userSocailRepository= userSocailRepository;
     }
 
     public LoginRegisterResponse registerAdmin(RegisterUserDto registerUserDto){
@@ -332,20 +339,52 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     }
 
     @Override
+    public UserProfileDetailsResponse getUserProfileByUserId(int userId, HttpServletRequest request) {
+        String accessBy= jwtUtils.customFilterCheck(request);
+        User user = userRepository.findByUserId(userId);
+        return changeToUserProfileResponse(accessBy, user);
+    }
+
+
+    @Override
     public UserProfileDetailsResponse getUserProfile() {
         String username= SecurityContextHolder.getContext().getAuthentication().getName();
         User user = getUserByUsername(username);
-        List<Event> userEvents = eventRepository.getEventsByUser(user);
+        return changeToUserProfileResponse(username, user);
+    }
 
-        UserProfileDetailsResponse.UserSnippetDetails userSnippetDetails= UserProfileDetailsResponse.UserSnippetDetails.builder().
-                username(user.getUsername()).
-                userDp(user.getUserDp())
-                .userIntro("This is intro")
+    UserProfileDetailsResponse changeToUserProfileResponse(String accessedBy, User profileOf){
+        List<Event> userEvents = eventRepository.getEventsForUserProfile(profileOf);
+
+        String instagramLink=null;
+        String facebookLink=null;
+        String linkedInLink=null;
+        String twitterLink=null;
+
+        UserSocials userSocials= userSocailRepository.findUserSocialsByUser_UserId(profileOf.getUserId());
+
+        if(userSocials!=null){
+            instagramLink= userSocials.getInstagramLink();
+            facebookLink= userSocials.getFacebookLink();
+            linkedInLink= userSocials.getLinkedInLink();
+            twitterLink = userSocials.getTwitterLink();
+        }
+        EditProfileDetails editProfileDetails= EditProfileDetails.builder().
+                username(profileOf.getUsername()).
+                userBio(profileOf.getUserBio())
+                .profileDp(profileOf.getUserDp())
+                .address(profileOf.getAddress())
+                .phoneNumber(profileOf.getPhoneNumber())
+                .email(profileOf.getEmail())
+                .facebookLink(facebookLink)
+                .instagramLink(instagramLink)
+                .linkedInLink(linkedInLink)
+                .twitterLink(twitterLink)
                 .build();
 
 
         return UserProfileDetailsResponse.builder()
-                .userSnippetDetails(userSnippetDetails)
+                .userSnippetDetails(editProfileDetails)
                 .noOfEvents(userEvents.size())
                 .pastEvents(
                         userEvents.stream()
@@ -354,11 +393,82 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
                                 .toList()
                 ).
                 upcomingEvents(
-                userEvents.stream()
-                        .filter(each-> each.getEventFirstPageDetails().getEventDate().getEventEndDate().isAfter(LocalDate.now()))
-                        .map(each-> changeToEventDto(each, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(each.getEventFirstPageDetails().getEventLocation())))
-                        .toList())
+                        userEvents.stream()
+                                .filter(each-> each.getEventFirstPageDetails().getEventDate().getEventEndDate().isAfter(LocalDate.now()))
+                                .map(each-> changeToEventDto(each, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(each.getEventFirstPageDetails().getEventLocation())))
+                                .toList())
+                .isUserProfile(accessedBy.equals(profileOf.getUsername()))
                 .build();
+    }
+
+    @Override
+    public EditProfileDetails getEditProfileDetails() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user= getUserByUsername(username);
+
+        String instagramLink=null;
+        String facebookLink=null;
+        String linkedInLink=null;
+        String twitterLink=null;
+
+        UserSocials userSocials= userSocailRepository.findUserSocialsByUser_UserId(user.getUserId());
+
+        if(userSocials!=null){
+            instagramLink= userSocials.getInstagramLink();
+            facebookLink= userSocials.getFacebookLink();
+            linkedInLink= userSocials.getLinkedInLink();
+            twitterLink = userSocials.getTwitterLink();
+        }
+        return EditProfileDetails
+                .builder()
+                .profileDp(user.getUserDp())
+                .address(user.getAddress())
+                .username(username)
+                .phoneNumber(user.getPhoneNumber())
+                .email(user.getEmail())
+                .userBio(user.getUserBio())
+                .facebookLink(facebookLink)
+                .instagramLink(instagramLink)
+                .linkedInLink(linkedInLink)
+                .twitterLink(twitterLink)
+                .build();
+    }
+
+    @Override
+    public void editProfile(EditProfileDetails editProfileDetails) {
+        String username= SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user= getUserByUsername(username);
+        UserSocials userSocials= userSocailRepository.findUserSocialsByUser_UserId(user.getUserId());
+
+        if(userSocials==null) userSocials= new UserSocials();
+
+        String userDp = null;
+        if(editProfileDetails.getProfileDp()!=null){
+            if(editProfileDetails.getProfileDp() instanceof MultipartFile){
+                userDp= cloudinary.uploadImage((MultipartFile) editProfileDetails.getProfileDp(), "User Dps");
+            }else {
+                userDp= user.getUserDp();
+            }
+        }
+
+        log.info("Phone NUmber"+editProfileDetails.getPhoneNumber());
+        user.setUserDp(userDp);
+        user.setUserBio(editProfileDetails.getUserBio());
+        user.setUsername(editProfileDetails.getUsername());
+        user.setPhoneNumber(editProfileDetails.getPhoneNumber());
+        user.setAddress(editProfileDetails.getAddress());
+
+        saveUser(
+                user
+        );
+
+        userSocials.setUser(user);
+        userSocials.setFacebookLink(editProfileDetails.getFacebookLink());
+        userSocials.setInstagramLink(editProfileDetails.getInstagramLink());
+        userSocials.setLinkedInLink(editProfileDetails.getLinkedInLink());
+        userSocials.setTwitterLink(editProfileDetails.getTwitterLink());
+        userSocailRepository.save(userSocials);
     }
 
     @Override

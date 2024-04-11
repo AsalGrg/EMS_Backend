@@ -1,6 +1,7 @@
 package com.backend.dtos.aboutEvent;
 
 import com.backend.dtos.VendorResponseDto;
+import com.backend.dtos.draftDtos.EachStarringDetail;
 import com.backend.models.EventPhysicalLocationDetails;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class EventDescriptionResponseDto {
     private LocalTime eventStartTime;
     private LocalTime eventEndTime;
     private String eventTitle;
+    private String eventStatus;
     private boolean hasStarring;
     private String locationType;
     private EventPhysicalLocationDetails physicalLocationDetails;

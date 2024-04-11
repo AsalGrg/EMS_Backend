@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtUtils {
 
     @Value("${jwt.secret}")
@@ -92,7 +94,8 @@ public class JwtUtils {
 
         String token = extractJwtToken(request);
 
-        if(token!=null && !isTokenExpired(token)){
+        log.info("Custom"+ token);
+        if(token!=null && !isTokenExpired(token) && !token.substring(7).equals("null")){
             return extractUsername(token);
         }
         return null;
@@ -100,6 +103,7 @@ public class JwtUtils {
 
     private String extractJwtToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
+        log.info("Request"+ authHeader);
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
         }

@@ -40,7 +40,7 @@ public class TicketPayment {
     @JoinColumn(name = "event_id")
     private Event event;
 
-    @OneToOne
+    @ManyToOne()
     @JoinColumn(name = "promocode_id")
     private PromoCode promoCode;
 }

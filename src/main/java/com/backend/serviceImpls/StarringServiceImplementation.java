@@ -93,7 +93,7 @@ public class StarringServiceImplementation implements StarringService {
                 Method methodStarringName = eventStarringDetails.getClass().getMethod("getStarring"+index+"Name");
 //                Method methodStarringPhotoName= eventStarringDetails.getClass().getMethod("getStarring"+index+"ImgName");
 
-                MultipartFile newStarringImage = (MultipartFile) methodStarringPhoto.invoke(eventStarringDetails);
+                Object newStarringImage = methodStarringPhoto.invoke(eventStarringDetails);
                 String newStarringName = (String) methodStarringName.invoke(eventStarringDetails);
 
 
@@ -117,9 +117,11 @@ public class StarringServiceImplementation implements StarringService {
                     continue;
                 }
 
-                if(!newStarringImage.getOriginalFilename().equals(savedStarringPhotoName)){
-                    methodStarringSetStarringPhoto.invoke(eventStarring,uploadPhoto(newStarringImage));
-                    methodStarringSetStarringImgName.invoke(eventStarring, newStarringImage.getOriginalFilename());
+                if(newStarringImage instanceof MultipartFile){
+                    if(!((MultipartFile)newStarringImage).getOriginalFilename().equals(savedStarringPhotoName)){
+                        methodStarringSetStarringPhoto.invoke(eventStarring,uploadPhoto((MultipartFile) newStarringImage));
+                        methodStarringSetStarringImgName.invoke(eventStarring,((MultipartFile)newStarringImage).getOriginalFilename());
+                    }
                 }
 
                 if(!newStarringName.equals(savedStarringName)){

@@ -45,6 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token!=null){
 
             log.info("token payey");
+
             String username = jwtUtils.extractUsername(token);
 
             if(username!=null && SecurityContextHolder.getContext().getAuthentication()==null){
@@ -78,7 +79,9 @@ public class JwtFilter extends OncePerRequestFilter {
         String bearerToken= request.getHeader("Authorization");
 
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")){
-            return bearerToken.substring(7);
+            if(!bearerToken.substring(7).equals("null")){
+                return bearerToken.substring(7);
+            }
         }
 
         return null;
