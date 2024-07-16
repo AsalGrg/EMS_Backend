@@ -14,5 +14,6 @@ public class LoginRegisterResponse {
     String message;
     String jwtToken;
     LocalDateTime timeStamp;
+    boolean isAdmin;
 //    String
 }

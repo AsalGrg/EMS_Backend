@@ -12,6 +12,7 @@ public interface EventCollectionRepository {
     List<EventCollection> getAllEventCollection();
 
     List<Event> getAllEventCollectionEvents(int collectionId);
-    List<Event> getUpcomingEventsOfCollection( int eventCollectionId);
+    List<EventCollection> getUpcomingEventsOfCollection( int eventCollectionId);
+    EventCollection getEventCollectionById(int collectionId);
 
 }

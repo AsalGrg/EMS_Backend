@@ -1,9 +1,7 @@
 package com.backend.serviceImpls;
 
 import com.backend.configs.JwtUtils;
-import com.backend.dtos.EditProfileDetails;
-import com.backend.dtos.LoginRegisterResponse;
-import com.backend.dtos.VendorResponseDto;
+import com.backend.dtos.*;
 import com.backend.dtos.addEvent.EventResponseDto;
 import com.backend.dtos.internals.EmailVerificationServiceResponse;
 import com.backend.dtos.login.LoginUserDto;
@@ -12,6 +10,7 @@ import com.backend.dtos.register.RegisterUserDto;
 import com.backend.dtos.register.VerifyOtpRequest;
 import com.backend.dtos.user.UserLoggedInSnippetResponse;
 import com.backend.dtos.user.UserProfileDetailsResponse;
+import com.backend.exceptions.InternalServerError;
 import com.backend.exceptions.ResourceAlreadyExistsException;
 import com.backend.exceptions.ResourceNotFoundException;
 import com.backend.models.*;
@@ -208,6 +207,13 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
     }
 
     @Override
+    public RegisterResponse forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        User user = userRepository.findByEmail(forgotPasswordDto.getEmail())
+                .orElseThrow(()-> new ResourceNotFoundException("Email does not exist"));
+        return sendEmailOTP(user);
+    }
+
+    @Override
     public RegisterResponse registerUser(RegisterUserDto registerUserDto) {
 
         boolean usernameExists= userRepository.existsByUsername(registerUserDto.getUsername());
@@ -252,7 +258,10 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         user.setVerified(false);
         saveUser(user);
 
+        return sendEmailOTP(user);
+    }
 
+    private RegisterResponse sendEmailOTP(User user){
         EmailVerificationServiceResponse emailVerificationServiceResponse= emailVerificationService.getEmailVerification(user);
 
         Map<String, String> emailVerificationMessages= emailMessages.userEmailVerificationOtpMessage(user.getEmail(), emailVerificationServiceResponse.getOtp());
@@ -261,7 +270,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         String body = emailVerificationMessages.get("message");
 
         emailService.sendEmail(
-                "asal.gurung.a21.2@icp.edu.np",
+                user.getEmail(),
                 subject,
                 body
         );
@@ -290,6 +299,36 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
                 .build();
     }
 
+    @Override
+    public LoginRegisterResponse verifyForgotPasswordOtp(VerifyOtpRequest verifyOtpRequest) {
+        emailVerificationService.validateOtp(verifyOtpRequest.getVerificationToken()
+                , verifyOtpRequest.getOtp());
+
+        return LoginRegisterResponse
+                .builder()
+                .message("Email Verification Successful")
+                .timeStamp(LocalDateTime.now())
+                .build();
+    }
+
+    @Override
+    public LoginRegisterResponse changeForgotPassword(ChangeForgotPasswordDto changeForgotPasswordDto){
+        EmailVerification emailVerification= emailVerificationService.getEmailVerificationByToken(changeForgotPasswordDto.getEmailVerificationToken());
+
+        if(emailVerification.getVerifiedAt()==null) throw new InternalServerError("User email not verified");
+
+        User user= emailVerification.getUser();
+
+        if(user.getPassword().equals(changeForgotPasswordDto.getNewPassword())) throw new InternalServerError("Should be different from previous password");
+        user.setPassword(changeForgotPasswordDto.getNewPassword());
+        userRepository.save(user);
+        return LoginRegisterResponse
+                .builder()
+                .message("Password changed successfully")
+                .timeStamp(LocalDateTime.now())
+                .build();
+
+    }
 
     @Override
     public LoginRegisterResponse loginUser(LoginUserDto loginUserDto){
@@ -297,15 +336,27 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
        User user = userRepository.findByEmailAndPassword(loginUserDto.getEmail(), loginUserDto.getPassword())
                 .orElseThrow(()-> new ResourceNotFoundException("User with the given credentials does not exist!"));
 
+       if(!user.isVerified() || !user.isEnabled()){
+           throw new InternalServerError("User not verified");
+       }
+
        //takes username for user details
        UserDetails userDetails = loadUserByUsername(user.getUsername());
 
        String token = jwtUtils.generateToken(userDetails);
 
+       boolean isAdmin = false;
+        for (Role each:
+             user.getUserRoles()) {
+            if(each.getTitle().equals("ADMIN")){
+                isAdmin= true;
+            }
+        }
        return LoginRegisterResponse.
                builder()
                .message("User login successful")
                .jwtToken(token)
+               .isAdmin(isAdmin)
                .timeStamp(LocalDateTime.now())
                .build();
 
@@ -385,6 +436,7 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
 
         return UserProfileDetailsResponse.builder()
                 .userSnippetDetails(editProfileDetails)
+                .userFollowers(vendorFollowerService.getNoOfFollowers(profileOf.getUserId()))
                 .noOfEvents(userEvents.size())
                 .pastEvents(
                         userEvents.stream()
@@ -464,10 +516,10 @@ public class UserServiceImplementation implements UserService, UserDetailsServic
         );
 
         userSocials.setUser(user);
-        userSocials.setFacebookLink(editProfileDetails.getFacebookLink());
-        userSocials.setInstagramLink(editProfileDetails.getInstagramLink());
-        userSocials.setLinkedInLink(editProfileDetails.getLinkedInLink());
-        userSocials.setTwitterLink(editProfileDetails.getTwitterLink());
+        userSocials.setFacebookLink(!editProfileDetails.getFacebookLink().isEmpty()?editProfileDetails.getFacebookLink():null);
+        userSocials.setInstagramLink(!editProfileDetails.getInstagramLink().isEmpty()?editProfileDetails.getInstagramLink():null);
+        userSocials.setLinkedInLink(!editProfileDetails.getLinkedInLink().isEmpty()?editProfileDetails.getLinkedInLink():null);
+        userSocials.setTwitterLink(!editProfileDetails.getTwitterLink().isEmpty()?editProfileDetails.getTwitterLink():null);
         userSocailRepository.save(userSocials);
     }
 

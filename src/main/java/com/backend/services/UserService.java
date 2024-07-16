@@ -1,8 +1,6 @@
 package com.backend.services;
 
-import com.backend.dtos.EditProfileDetails;
-import com.backend.dtos.LoginRegisterResponse;
-import com.backend.dtos.VendorResponseDto;
+import com.backend.dtos.*;
 import com.backend.dtos.login.LoginUserDto;
 import com.backend.dtos.register.RegisterResponse;
 import com.backend.dtos.register.RegisterUserDto;
@@ -25,7 +23,12 @@ public interface UserService {
 
     LoginRegisterResponse verifyOtp(VerifyOtpRequest verifyOtpRequest);
 
+    LoginRegisterResponse verifyForgotPasswordOtp(VerifyOtpRequest verifyOtpRequest);
+    LoginRegisterResponse changeForgotPassword(ChangeForgotPasswordDto changeForgotPasswordDto);
+
     LoginRegisterResponse loginUser(LoginUserDto loginUserDto);
+
+    RegisterResponse forgotPassword(ForgotPasswordDto forgotPasswordDto);
 
     User getUserByUsername(String username);
 

@@ -25,7 +25,16 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public List<Event> getAllPendingEvents() {
         Session session = sessionFactory.openSession();
-        Query<Event> query= session.createQuery("FROM Event er WHERE er.eventStatus='pending'", Event.class);
+        Query<Event> query= session.createQuery("SELECT er FROM Event er WHERE er.eventFirstPageDetails.eventDate.eventStartDate > CURRENT_DATE", Event.class);
+        List<Event> events= query.getResultList();
+        session.close();
+        return events;
+    }
+
+    @Override
+    public List<Event> getAllCompletedEvents() {
+        Session session = sessionFactory.openSession();
+        Query<Event> query= session.createQuery("SELECT er FROM Event er WHERE er.eventStatus= 'completed'", Event.class);
         List<Event> events= query.getResultList();
         session.close();
         return events;
@@ -138,7 +147,7 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public List<Event> getEventByLocation(String location) {
         Session session= sessionFactory.openSession();
-        Query<Event> eventQuery = session.createQuery("FROM Event et JOIN event_physical_location_details ep ON et.eventFirstPageDetails.eventLocation.id= ep.eventLocation.id WHERE ep.country = :location AND et.isPrivate = false AND et.eventStatus= 'completed'", Event.class);
+        Query<Event> eventQuery = session.createQuery("FROM Event et JOIN event_physical_location_details ep ON et.eventFirstPageDetails.eventLocation.id= ep.eventLocation.id WHERE ep.country = :location AND et.eventVisibility.visibilityType.title = 'Public' AND et.eventStatus= 'completed'", Event.class);
         eventQuery.setParameter("location", location);
         List<Event> events= eventQuery.getResultList();
         session.close();
@@ -217,7 +226,7 @@ public class EventRepositoryImpl implements EventRepository {
         Session session = sessionFactory.openSession();
         log.info(eventTitle);
         log.info(eventCountry);
-        Query<Event> eventQuery= session.createQuery("FROM Event e JOIN  EventLocation  el ON e.eventFirstPageDetails.eventLocation.id = el.id LEFT JOIN event_physical_location_details epld ON el.id = epld.eventLocation.id WHERE e.eventFirstPageDetails.name = :eventTitle AND el.locationType.locationTypeTitle = 'venue' AND epld.country = :eventCountry", Event.class);
+        Query<Event> eventQuery= session.createQuery("FROM Event e JOIN event_physical_location_details epld ON e.eventFirstPageDetails.eventLocation.id = epld.eventLocation.id WHERE e.eventFirstPageDetails.name LIKE CONCAT('%', :eventTitle, '%') AND e.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle = 'Venue' AND epld.country = :eventCountry AND e.eventStatus='completed' AND e.eventVisibility.visibilityType.title='Public'", Event.class);
         eventQuery.setParameter("eventTitle", eventTitle);
         eventQuery.setParameter("eventCountry", eventCountry);
         return eventQuery.getResultList();
@@ -226,7 +235,7 @@ public class EventRepositoryImpl implements EventRepository {
     @Override
     public List<Event> getAllOnlineEvents() {
         Session session= sessionFactory.openSession();
-        Query<Event> eventQuery= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle='online' AND er.eventStatus='completed'", Event.class);
+        Query<Event> eventQuery= session.createQuery("FROM Event er WHERE er.eventFirstPageDetails.eventLocation.locationType.locationTypeTitle='online' AND er.eventStatus='completed' AND er.eventVisibility.visibilityType.title='Public'", Event.class);
         return eventQuery.getResultList();
     }
 

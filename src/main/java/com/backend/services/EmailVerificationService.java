@@ -10,4 +10,5 @@ public interface EmailVerificationService {
 
     EmailVerification validateOtp(String verificationToken, String otp);
 
+    EmailVerification getEmailVerificationByToken(String token);
 }

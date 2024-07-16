@@ -59,13 +59,19 @@ public class SecurityConfig{
             "/getEditProfileDetails",
             "/editProfile",
             "/getAllEventRequests",
-            "/updateEventRequest/{eventId}/{action}"
+            "/updateEventRequest/{eventId}/{action}",
+            "/addEventInCollection/{eventId}/{collectionId}",
+            "/removeEventFromCollection/{eventId}/{collectionId}",
+            "/getAllCompletedEvents"
     };
 
     private static final String[] PUBLIC_ROUTES = {
             "/register",
             "/verify-otp",
             "/login",
+            "/forgotPassword",
+            "/verify-otp-forgot-password",
+            "/change-forgot-password",
             "/event_id/{id}",
             "/event/{type}/{location}",
             "/search/{eventTitle}/{eventVenue}",
@@ -78,7 +84,10 @@ public class SecurityConfig{
             "/getAllCollections",
 //            for testing, should be on admin
             "/addCollection",
-            "/user/profile/{id}"
+            "/addEventInCollection/{eventId}/{collectionId}",
+            "/removeEventFromCollection/{eventId}/{collectionId}",
+            "/user/profile/{id}",
+            "/getCollectionDescription/{collectionId}"
     };
     private JwtFilter jwtAuthFilter;
 

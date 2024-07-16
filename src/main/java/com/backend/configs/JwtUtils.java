@@ -98,7 +98,9 @@ public class JwtUtils {
         if(token!=null && !isTokenExpired(token) && !token.substring(7).equals("null")){
             return extractUsername(token);
         }
-        return null;
+        else {
+            return null;
+        }
     }
 
     private String extractJwtToken(HttpServletRequest request) {

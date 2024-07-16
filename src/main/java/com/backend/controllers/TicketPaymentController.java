@@ -51,8 +51,7 @@ public class TicketPaymentController {
     @PostMapping("/makePayment")
     public ResponseEntity<?> makePayment(@Valid @RequestPart("paymentDetails") PaymentRequestDto paymentRequestDto){
 
-        ticketPaymentService.makePayment(paymentRequestDto);
 
-        return ResponseEntity.ok("Ticket details added successfully");
+        return ResponseEntity.ok(ticketPaymentService.makePayment(paymentRequestDto));
     }
 }

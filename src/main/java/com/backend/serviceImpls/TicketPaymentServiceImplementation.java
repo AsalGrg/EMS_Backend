@@ -58,7 +58,7 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
 
 
     @Override
-    public void makePayment (PaymentRequestDto paymentRequestDto){
+    public String makePayment (PaymentRequestDto paymentRequestDto){
 
         String username= SecurityContextHolder.getContext().getAuthentication().getName();
         User userDetails= userService.getUserByUsername(username);
@@ -116,6 +116,37 @@ public class TicketPaymentServiceImplementation implements TicketPaymentService 
         if(promoCodeUsed){
             promocodeService.updatePromoCodeUsed(promocodeService.getPromoCodeByTitle(paymentRequestDto.getPromoCode()));
         }
+
+//        return getKhaltiUrl("http://localhost:5173/event/about/"+eventDetails.getId(), "http://localhost:5173/", userDetails.getUsername(), (int)total,userDetails.getUsername()+ticketPayment.getId(),"Event Ticket",userDetails.getEmail(), userDetails.getPhoneNumber());
+        return "Ticket Payment Successful";
+    }
+
+    private String getKhaltiUrl(String returnUrl, String websiteUrl, String name, int amount, String orderId, String orderName, String email, String phone){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization","Key 87b629f94b144e04b2cd9d9b8241fbbe");
+
+        String url = "https://a.khalti.com/api/v2/epayment/initiate/";
+
+        String requestBody = String.format("{\n" +
+                "    \"return_url\": \"%s\",\n" +
+                "    \"website_url\": \"%s\",\n" +
+                "    \"amount\": \"%s\",\n" +
+                "    \"purchase_order_id\":  \"%s\",\n" +
+                "    \"purchase_order_name\": \"%s\",\n" +
+                "    \"customer_info\": {\n" +
+                "        \"name\": \"%s\",\n" +
+                "        \"email\": \"%s\",\n" +
+                "        \"phone\": \"%s\"\n" +
+                "    }\n" +
+                "}", returnUrl, websiteUrl, amount, orderId, orderName,name, email, phone);
+
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+        return responseEntity.getBody();
     }
 
     public double getPaymentTotal(EventTicket eventTicket, Event event, int ticketQuantity, String promoCode){

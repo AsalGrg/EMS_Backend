@@ -1,7 +1,9 @@
 package com.backend.controllers;
 
 
+import com.backend.dtos.ChangeForgotPasswordDto;
 import com.backend.dtos.EditProfileDetails;
+import com.backend.dtos.ForgotPasswordDto;
 import com.backend.dtos.LoginRegisterResponse;
 import com.backend.dtos.login.LoginUserDto;
 import com.backend.dtos.register.RegisterResponse;
@@ -50,10 +52,33 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest verifyOtpRequest){
+    public ResponseEntity<?> verifyOtp(@RequestBody @Valid VerifyOtpRequest verifyOtpRequest){
         LoginRegisterResponse response= userService.verifyOtp(verifyOtpRequest);
         return ResponseEntity.ok(response);
     }
+
+
+//    for forgot password
+    @PostMapping("/forgotPassword")
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid ForgotPasswordDto forgotPasswordDto)
+    {
+        RegisterResponse response = userService.forgotPassword(forgotPasswordDto);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/verify-otp-forgot-password")
+    public ResponseEntity<?> verifyForgotPasswordOTP(@RequestBody @Valid VerifyOtpRequest verifyOtpRequest){
+        LoginRegisterResponse response= userService.verifyForgotPasswordOtp(verifyOtpRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/change-forgot-password")
+    public ResponseEntity<?> changeForgotPassword(@RequestBody @Valid ChangeForgotPasswordDto changeForgotPasswordDto){
+        LoginRegisterResponse response= userService.changeForgotPassword(changeForgotPasswordDto);
+        return ResponseEntity.ok(response);
+    }
+    // ends here
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginUserDto loginUser, HttpSession httpSession){
@@ -96,7 +121,6 @@ public class AuthController {
         userService.editProfile(editProfileDetails);
         return  ResponseEntity.ok("Profile edited successfully");
     }
-
 
 
     //just for testing purposes only, to be removed in the future

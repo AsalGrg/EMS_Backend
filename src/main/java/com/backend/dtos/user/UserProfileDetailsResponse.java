@@ -16,6 +16,8 @@ public class UserProfileDetailsResponse {
 
     private EditProfileDetails userSnippetDetails;
 
+    private int userFollowers;
+
     private int noOfEvents;
 
     private List<EventResponseDto> pastEvents;

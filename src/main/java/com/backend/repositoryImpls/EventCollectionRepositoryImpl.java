@@ -4,6 +4,7 @@ import com.backend.models.CollectionEvents;
 import com.backend.models.Event;
 import com.backend.models.EventCollection;
 import com.backend.repositories.EventCollectionRepository;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -11,6 +12,7 @@ import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -52,12 +54,32 @@ public class EventCollectionRepositoryImpl implements EventCollectionRepository 
     }
 
     @Override
-    public List<Event> getUpcomingEventsOfCollection(int eventCollectionId) {
+    public List<EventCollection> getUpcomingEventsOfCollection(int eventCollectionId) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM CollectionEvents ce " +
+                    "WHERE ce.id = :id " +
+                    "AND ce.event.eventFirstPageDetails.eventDate.eventStartDate > CURRENT_DATE";
+
+            Query<EventCollection> eventQuery = session.createQuery(hql, EventCollection.class);
+            eventQuery.setParameter("id", eventCollectionId);
+
+            return eventQuery.getResultList();
+        } catch (HibernateException e) {
+            // Handle exceptions appropriately
+            e.printStackTrace();
+            return Collections.emptyList(); // or throw an exception
+        }
+    }
+
+
+
+    @Override
+    public EventCollection getEventCollectionById(int collectionId) {
         Session session= sessionFactory.openSession();
-        Query<Event> eventQuery = session.createQuery("SELECT ce.event  FROM CollectionEvents ce JOIN EventCollection  ec on ce.collection.id= ec.id WHERE ec.id=:id AND ce.event.eventFirstPageDetails.eventDate.eventStartDate > current_date()", Event.class);
-        eventQuery.setParameter("id", eventCollectionId);
-        List<Event> events= eventQuery.getResultList();
+        Query<EventCollection> eventQuery = session.createQuery("FROM EventCollection ec WHERE ec.id=:id ", EventCollection.class);
+        eventQuery.setParameter("id", collectionId);
+        EventCollection eventCollection= eventQuery.uniqueResult();
         session.close();
-        return events;
+        return eventCollection;
     }
 }

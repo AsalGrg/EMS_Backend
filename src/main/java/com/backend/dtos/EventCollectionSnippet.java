@@ -18,7 +18,7 @@ public class EventCollectionSnippet {
     @NotEmpty(message = "Collection name cannot be empty")
     private String collectionName;
 
-
+    private int id;
     private int noOfUpcomingEvents;
 
     @NotNull(message = "Collection description is required")

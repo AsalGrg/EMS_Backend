@@ -19,6 +19,7 @@ import com.backend.models.*;
 import com.backend.repositories.*;
 import com.backend.services.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.websocket.OnError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
@@ -66,9 +67,9 @@ public class EventServiceImplementation implements EventService {
     private final VendorFollowerService vendorFollowerService;
     private final FavouriteEventService favouriteEventService;
     private final CloudinaryUploadService cloudinaryUploadService;
-
     private final  TicketPaymentRepository ticketPaymentRepository;
     private final EventCollectionRepository eventCollectionRepository;
+    private final CollectionEventsRepository collectionEventsRepository;
 
     @Autowired
     public EventServiceImplementation
@@ -86,7 +87,8 @@ public class EventServiceImplementation implements EventService {
              EventPhysicalLocationDetailsService eventPhysicalLocationDetailsService,
              TicketPaymentRepository ticketPaymentRepository,
              FavouriteEventService favouriteEventService,
-             EventCollectionRepository eventCollectionRepository
+             EventCollectionRepository eventCollectionRepository,
+             CollectionEventsRepository collectionEventsRepository
              ){
 
         this.eventRepository= eventRepository;
@@ -108,6 +110,7 @@ public class EventServiceImplementation implements EventService {
         this.favouriteEventService= favouriteEventService;
         this.ticketPaymentRepository= ticketPaymentRepository;
         this.eventCollectionRepository= eventCollectionRepository;
+        this.collectionEventsRepository= collectionEventsRepository;
     }
 
     public EventResponseDto changeToEventDto(Event event, EventPhysicalLocationDetails physicalLocationDetails){
@@ -189,6 +192,19 @@ public class EventServiceImplementation implements EventService {
 
         for (Event event:
              events) {
+            EventResponseDto eventResponseDto= changeToEventDto(event, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()));
+            eventResponseDtos.add(eventResponseDto);
+        }
+        return eventResponseDtos;
+    }
+
+    @Override
+    public List<EventResponseDto> getAllCompletedEvents(){
+        List<Event> events= eventRepository.getAllCompletedEvents();
+        List<EventResponseDto> eventResponseDtos= new ArrayList<>();
+
+        for (Event event:
+                events) {
             EventResponseDto eventResponseDto= changeToEventDto(event, eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(event.getEventFirstPageDetails().getEventLocation()));
             eventResponseDtos.add(eventResponseDto);
         }
@@ -288,7 +304,7 @@ public class EventServiceImplementation implements EventService {
     public EventDescriptionResponseDto getAboutEventByEventId(int eventId, HttpServletRequest request, EventAccessDetails eventAccessDetails) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         Event event= getEventById(eventId);
 
-        if(event.getEventVisibility().getVisibilityType().getTitle().equals("Password")){
+        if(event.getEventVisibility().getVisibilityType().getTitle().equals("Password") && event.getEventStatus().equals("completed")){
             if(eventAccessDetails==null){
                 throw new NotAuthorizedException("Event access password is required to access the event");
             }
@@ -465,10 +481,9 @@ public class EventServiceImplementation implements EventService {
     }
 
     @Override
-    public EventAndVendorsByLocationDto getEventByPlace(String place) {
+    public EventAndVendorsByLocationDto getEventByPlace(String place, HttpServletRequest request) {
 
-        String username= SecurityContextHolder.getContext().getAuthentication().getName();
-
+        String username= jwtUtils.customFilterCheck(request);
         List<Event> events;
         List<EventResponseDto> eventResponseDtos= new ArrayList<>();
         List<VendorResponseDto> vendors= new ArrayList<>();
@@ -653,6 +668,7 @@ public class EventServiceImplementation implements EventService {
 
         if(action.equals("accept")) event.setEventStatus("completed");
         else if(action.equals("reject")) event.setEventStatus("rejected");
+        else if(action.equals("undo")) event.setEventStatus("pending");
         else throw new InternalServerError("Invalid action request");
 
         saveEvent(event);
@@ -843,7 +859,6 @@ public class EventServiceImplementation implements EventService {
             EventPhysicalLocationDetails eventPhysicalLocationDetailsFromDB = eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(eventLocation);
 
             if(eventPhysicalLocationDetailsFromDB==null){
-                log.info("PHYSSSS");
                 eventPhysicalLocationDetailsService.savePhysicalLocationDetails(eventPhysicalLocationDetails, eventLocation);
             }else {
                 log.info("PHYSSSS2222");
@@ -920,7 +935,6 @@ public class EventServiceImplementation implements EventService {
         if(addEventSecondPageDto.getEventCoverImage()!=null) {
             if (addEventSecondPageDto.getEventCoverImage() instanceof MultipartFile){
 
-                log.info("YETTTTTTTTAAAA");
                 if(!((MultipartFile)(addEventSecondPageDto.getEventCoverImage())).getOriginalFilename().equals(event.getEventSecondPageDetails().getCoverImgName()) ){
                         coverImageUrl= cloudinaryUploadService.uploadImage((MultipartFile) addEventSecondPageDto.getEventCoverImage(), "Event Cover Photo");
                         coverImgName= ((MultipartFile) addEventSecondPageDto.getEventCoverImage()).getOriginalFilename();
@@ -1065,23 +1079,80 @@ public class EventServiceImplementation implements EventService {
         return eventCollectionSnippets;
     }
 
+    @Override
+    public void addEventInCollection(int eventId, int collectionId){
+        CollectionEvents collectionEvents= collectionEventsRepository.findCollectionEventsByEvent_IdAndCollection_Id(eventId, collectionId);
+
+        if(collectionEvents!=null) throw new InternalServerError("Event is already added to the collection");
+
+        Event event=  getEventById(eventId);
+
+        if (!event.getEventStatus().equals("completed")) throw new InternalServerError("Event should be published first");
+        collectionEventsRepository.save(
+                CollectionEvents
+                        .builder()
+                        .event(event)
+                        .collection(eventCollectionRepository.getEventCollectionById(collectionId))
+                        .build()
+        );
+    }
+
+
+
+
+    @Override
+    public void removeEventFromCollection(int eventId, int collectionId) {
+        CollectionEvents collectionEvents= collectionEventsRepository.findCollectionEventsByEvent_IdAndCollection_Id(eventId, collectionId);
+        if(collectionEvents==null) throw new InternalServerError("Event is not added to the collection");
+
+        collectionEventsRepository.deleteEventFromEventCollection(collectionId, eventId);
+    }
+
+    @Override
+    public CollectionDescription getAllEventCollectionEvents(int collectionId) {
+
+        List<CollectionEvents> collectionEvents= collectionEventsRepository.findAllByCollection_Id(collectionId);
+        List<EventResponseDto> eventResponseDtos= new ArrayList<>();
+
+        for (CollectionEvents eachCollectionEvent:
+             collectionEvents) {
+            EventPhysicalLocationDetails eventPhysicalLocationDetails= eachCollectionEvent.getEvent().getEventFirstPageDetails().getEventLocation().getLocationType().getLocationTypeTitle()=="Venue"? eventPhysicalLocationDetailsService.getEventPhysicalLocationDetailsByEventLocation(eachCollectionEvent.getEvent().getEventFirstPageDetails().getEventLocation()):null;
+            eventResponseDtos.add(changeToEventDto(eachCollectionEvent.getEvent(), eventPhysicalLocationDetails));
+        }
+
+        EventCollection collection= eventCollectionRepository.getEventCollectionById(collectionId);
+
+        return CollectionDescription
+                .builder()
+                .collectionId(collectionId)
+                .collectionName(collection.getCollectionName())
+                .collectionImage(collection.getCoverImage())
+                .collectionDescription(collection.getCollectionDescription())
+                .collectionEvents(eventResponseDtos)
+                .build();
+    }
+
 
     private EventCollectionSnippet convertToCollectionSnippet(EventCollection eventCollection){
 
-        List<Event> upcomingEvents =  eventCollectionRepository.getUpcomingEventsOfCollection(eventCollection.getId());
+        log.info("KKK: "+ eventCollection.getId());
+        List<EventCollection> upcomingEvents =  eventCollectionRepository.getUpcomingEventsOfCollection(eventCollection.getId());
+
+        log.info("JDJJJD: "+ upcomingEvents.size());
         return  EventCollectionSnippet
                 .builder()
+                .id(eventCollection.getId())
                 .collectionName(eventCollection.getCollectionName())
                 .description(eventCollection.getCollectionDescription())
                 .lastAccessedDate(eventCollection.getLastUpdated().toLocalDate())
                 .lastAccessedTime(eventCollection.getLastUpdated().toLocalTime())
-                .noOfUpcomingEvents(upcomingEvents.size())
+                .noOfUpcomingEvents(upcomingEvents.toArray().length)
                 .coverImg(eventCollection.getCoverImage())
                 .build();
     }
     private EventDraftDetails changeToEventDraftDetails(Event event, String convertFor) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        int pageStatus=0;
+        int pageStatus=1;
         if(convertFor.equals("draft")){
             pageStatus= event.getPageStatus();
         }

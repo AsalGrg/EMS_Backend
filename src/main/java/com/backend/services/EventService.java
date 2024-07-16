@@ -17,6 +17,7 @@ import java.util.List;
      void likeEvent(int eventId);
     Event getEventById(int id);
     List<EventResponseDto> getAllVendorEventsSnippets();
+     List<EventResponseDto> getAllCompletedEvents();
     EventInternalDetailsDto getEventInternalDetails(int eventId);
     List<OrderDetailsDto> getAllVendorOrders();
     ApplyPromoCodeResponseDto isPromoCodeValid(String promoCode , int eventId, double totalAmount);
@@ -36,7 +37,7 @@ import java.util.List;
 
      void deactivePromoCode(int promoCodeId);
 
-    EventAndVendorsByLocationDto getEventByPlace(String place);
+    EventAndVendorsByLocationDto getEventByPlace(String place, HttpServletRequest request);
 
      CategoryDetailsDto getEventByTypeAndLocation(String type, String location, HttpServletRequest request);
 
@@ -59,6 +60,9 @@ import java.util.List;
      EventDraftDetails getEventEditDetails(int eventId)  throws InvocationTargetException, NoSuchMethodException, IllegalAccessException;
      void addEventCollection(EventCollectionSnippet eventCollectionSnippet);
      List<EventCollectionSnippet> getAllEventCollections();
+     void addEventInCollection(int eventId, int collectionId);
+     void removeEventFromCollection(int eventId, int collectionId);
+     CollectionDescription getAllEventCollectionEvents(int collectionId);
      List<EventResponseDto> getAllEventRequests();
-     void updateEventRequest(int eventId, String action); //can be accept or reject;
+     void updateEventRequest(int eventId, String action); //can be accept or reject or undo;
  }

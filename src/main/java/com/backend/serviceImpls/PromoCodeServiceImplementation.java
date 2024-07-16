@@ -111,7 +111,7 @@ public class PromoCodeServiceImplementation implements PromoCodeService {
 
         double applicableOn = promoCodeDetails.getApplicableOn().equals("Minimum value")? event.getEventThirdPageDetails().getEventTicket().getTicketPrice(): Integer.parseInt(promoCodeDetails.getApplicableOn());
         if(!(total >=applicableOn)){
-            throw new InternalServerError("Promo code cannot be applied");
+            throw new InternalServerError("Minimum total not reached");
         }
 
         double grandTotal;

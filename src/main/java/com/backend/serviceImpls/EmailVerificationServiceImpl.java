@@ -56,11 +56,8 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
         if(!otpMatches) throw  new IllegalStateException("Invalid OTP code!");
 
-        if(emailVerification.getUser().isVerified() || emailVerification.getVerifiedAt()!=null){
-            throw new IllegalStateException("User already verified!");
-        }
 
-        if(LocalDateTime.now().isAfter(emailVerification.getSentAt().plusMinutes(2))){
+        if(LocalDateTime.now().isAfter(emailVerification.getSentAt().plusMinutes(5))){
             throw new IllegalStateException("OTP already expired");
         }
 
@@ -70,7 +67,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         return emailVerification;
     }
 
-    private EmailVerification getEmailVerificationByToken(String token){
+    public EmailVerification getEmailVerificationByToken(String token){
         return emailVerificationRepo.getByEmailVerificationToken(token)
                 .orElseThrow(()->new ResourceNotFoundException("Invalid Verification Token"));
     }

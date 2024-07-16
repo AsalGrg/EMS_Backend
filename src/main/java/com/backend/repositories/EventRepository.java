@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface EventRepository {
 
     List<Event> getAllPendingEvents();
+    List<Event> getAllCompletedEvents();
     Event getEventById(int id);
 
     Optional<Event> getEventByName(String name);

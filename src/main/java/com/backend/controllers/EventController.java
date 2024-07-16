@@ -95,9 +95,9 @@ public class EventController {
 
 
     @GetMapping("/place/{place}")
-    public ResponseEntity<?> getEventByPlace(@PathVariable("place") String place){
+    public ResponseEntity<?> getEventByPlace(@PathVariable("place") String place, HttpServletRequest request){
         log.info(place);
-        return new ResponseEntity<>(eventService.getEventByPlace(place), HttpStatus.OK);
+        return new ResponseEntity<>(eventService.getEventByPlace(place, request), HttpStatus.OK);
     }
 
     //the request is because if the user has token just in case so that we can track the vendors followed
@@ -299,6 +299,12 @@ public class EventController {
 //    }
 //
 
+    @PostMapping("/getAllCompletedEvents")
+    public ResponseEntity<?> getAllCompletedEvents(){
+        List<EventResponseDto> completedEvents = eventService.getAllCompletedEvents();
+
+        return ResponseEntity.ok(completedEvents);
+    }
     @PostMapping("/addPromoCode")
     public ResponseEntity<?> addEvent(@Valid @RequestPart("promoCodeDetails") AddPromoCodeDto promoCodeDto) {
 
@@ -317,6 +323,23 @@ public class EventController {
     @GetMapping("/getAllCollections")
     public ResponseEntity<?>  getAllCollections (){
         return new ResponseEntity<>(eventService.getAllEventCollections(), HttpStatus.OK);
+    }
+
+    @GetMapping("/addEventInCollection/{eventId}/{collectionId}")
+    public ResponseEntity<?>  addEventInCollection (@PathVariable("eventId") int eventId, @PathVariable("collectionId") int collectionId){
+        eventService.addEventInCollection(eventId, collectionId);
+        return new ResponseEntity<>("Event added successfully",HttpStatus.OK);
+    }
+
+    @GetMapping("/removeEventFromCollection/{eventId}/{collectionId}")
+    public ResponseEntity<?>  removeEventFromCollection (@PathVariable("eventId") int eventId, @PathVariable("collectionId") int collectionId){
+        eventService.removeEventFromCollection(eventId, collectionId);
+        return new ResponseEntity<>("Event removed successfully",HttpStatus.OK);
+    }
+
+    @GetMapping("/getCollectionDescription/{collectionId}")
+    public ResponseEntity<?>  getCollectionEvents (@PathVariable("collectionId") int collectionId){
+        return new ResponseEntity<>(eventService.getAllEventCollectionEvents(collectionId), HttpStatus.OK);
     }
 
     @GetMapping("/getAllEventRequests")
